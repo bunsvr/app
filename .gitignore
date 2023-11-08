@@ -1,0 +1,8 @@
+# Bun 
+bun.lockb
+node_modules
+
+# Build
+index.js
+wrap.js
+types

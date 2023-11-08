@@ -3,18 +3,26 @@ import { Context as RadixContext } from 'wint-js/types/types';
 /**
  * Represent a request object
  */
-export interface Context<Params = any> extends RadixContext {
+export interface Context<Params = any> extends RadixContext, Omit<Request, 'url' | 'method'> {
     /**
      * Parsed path parameters
      */
     params: Params;
-    url: string;
-    path: string;
 
     /**
      * Send other data
      */
     set: ResponseInit;
+
+    /**
+     * Current request URL
+     */
+    url: string;
+
+    /**
+     * Current request method
+     */
+    method: string;
 }
 
 /**

@@ -3,11 +3,12 @@ import type { Handler } from './types';
 import type { Router } from 'wint-js/types/types';
 import { ConcatPath } from './utils/concatPath';
 import { lowercaseMethods } from './utils/methods';
+import mergeHandlers from './utils/mergeHandlers';
 
 export type Route = [method: string, path: string, handler: Handler];
 
 export interface RouteHandler<Root extends string> {
-    <Path extends string>(path: Path, handler: Handler<ConcatPath<Root, Path>>): Routes<Root>;
+    <Path extends string>(path: Path, ...handlers: Handler<ConcatPath<Root, Path>>[]): Routes<Root>;
 }
 
 class Routes<Root extends string = '/'> {
@@ -24,8 +25,8 @@ class Routes<Root extends string = '/'> {
         for (var method of lowercaseMethods) {
             const METHOD = method.toUpperCase();
 
-            this[method] = (path, handler) => {
-                this.record.push([METHOD, path, handler]);
+            this[method] = (path, ...handlers) => {
+                this.record.push([METHOD, path, mergeHandlers(handlers)]);
                 return this;
             }
         }

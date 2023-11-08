@@ -66,10 +66,7 @@ export default class App {
         options.router ??= new Wint;
 
         // Set to default hostname and port
-        options.serve ??= {
-            // Allow reuse port by default
-            reusePort: true
-        };
+        options.serve ??= {};
 
         // Set port in ENV if found
         if (!('port' in options.serve) && 'PORT' in Bun.env)
@@ -108,10 +105,10 @@ export default class App {
         const find = this.options.router.build().find;
 
         // Fetch function
-        this.options.serve.fetch = ((c: Context) => {
+        this.options.serve.fetch = (c: Context) => {
             const res = find(c);
             return res === null ? null : res(c);
-        }) as any;
+        };
 
         // Serve directly
         if (serve) this.boot();

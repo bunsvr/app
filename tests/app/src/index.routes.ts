@@ -1,5 +1,6 @@
 import { routes } from '../../..';
-import { text } from '../../../wrap';
+import { json, text } from '../../../wrap';
 
 export const main = () => routes()
-    .get('/', () => text('Hi'));
+    .get('/', () => text('Hi'))
+    .post('/json', c => c.json().then(json));

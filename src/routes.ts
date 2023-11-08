@@ -40,6 +40,8 @@ class Routes<Root extends string = '/'> {
                 this.record.push([
                     rec[0], join(route.base, rec[1]), rec[2]
                 ]);
+
+        return this;
     }
 
     /**

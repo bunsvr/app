@@ -2,9 +2,9 @@ import { Router } from 'wint-js/types/types';
 import Wint from 'wint-js/turbo';
 import { Context, Handler } from './types';
 import { ServeOptions } from 'bun';
-import { resolve } from 'path';
+import { relative, resolve } from 'path';
 import scanDir from './utils/scanDir';
-import { Routes } from './routes';
+import { routes, type Routes } from './routes';
 
 const routePathValidator = (p: string) => p.endsWith('.routes.ts');
 
@@ -22,7 +22,7 @@ export interface AppOptions {
     /**
      * Directories that contain routes files
      */
-    routes?: string[];
+    routes: string[];
 }
 
 /**
@@ -47,12 +47,12 @@ export default class App {
     /**
      * Record of routes
      */
-    readonly routes: Routes<any> = new Routes;
+    readonly routes: Routes<any> = routes();
 
     /**
      * Initialize an app
      */
-    constructor(readonly options: AppOptions = {}) {
+    constructor(readonly options: AppOptions) {
         optimize();
 
         // Defaults to turbo router
@@ -65,11 +65,8 @@ export default class App {
         };
 
         // Set port in ENV if found
-        if (!('port' in options.serve) && 'PORT' in process.env)
+        if (!('port' in options.serve) && 'PORT' in Bun.env)
             options.serve.port = Number(process.env.PORT);
-
-        // Serve routes in src by default
-        options.routes ??= ['src'];
     }
 
     /**
@@ -92,19 +89,15 @@ export default class App {
         // Build the find function
         const find = this.options.router.build().find;
 
-        // @ts-ignore Fetch function
-        this.options.serve.fetch = (c: Context) => {
+        // Fetch function
+        this.options.serve.fetch = ((c: Context) => {
             // Parse path
-            c._pathStart = c.url.indexOf('/', 12) + 1,
-                c._pathEnd = c.url.indexOf('?', c._pathStart);
-
-            c.path = c._pathEnd === -1
-                ? c.url.substring(c._pathStart)
-                : c.url.substring(c._pathStart, c._pathEnd);
+            c._pathStart = c.url.indexOf('/', 12) + 1;
+            c._pathEnd = c.url.indexOf('?', c._pathStart);
 
             const res = find(c);
             return res === null ? null : res(c);
-        };
+        }) as any;
 
         // Serve directly
         if (serve) Bun.serve(
@@ -118,11 +111,16 @@ export default class App {
     async route(dir: string) {
         dir = resolve(dir);
 
-        const res = scanDir(dir, routePathValidator);
-        for (var absPath of res) {
-            var fn = await import(absPath);
+        // Log the searching directory
+        console.log('Searching', `'${relative(process.cwd(), dir)}':`);
 
-            console.log('Registering', absPath);
+        const res = scanDir(dir, routePathValidator);
+
+        for (var absPath of res) {
+            // Log the entry file
+            console.log('+ Entry:', `'${relative(dir, absPath)}'`);
+
+            var fn = await import(absPath);
 
             // Run the main function
             if ('main' in fn) {

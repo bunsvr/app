@@ -90,6 +90,8 @@ export default class App {
         this.server = Bun.serve(
             this.options.serve as ServeOptions
         );
+
+        return this;
     }
 
     /**
@@ -107,10 +109,6 @@ export default class App {
 
         // Fetch function
         this.options.serve.fetch = ((c: Context) => {
-            // This part can be optimized more
-            c._pathStart = c.url.indexOf('/', 12) + 1;
-            c._pathEnd = c.url.indexOf('?', c._pathStart);
-
             const res = find(c);
             return res === null ? null : res(c);
         }) as any;

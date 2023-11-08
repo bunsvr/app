@@ -10,6 +10,11 @@ export interface Context<Params = any> extends RadixContext {
     params: Params;
     url: string;
     path: string;
+
+    /**
+     * Send other data
+     */
+    set: ResponseInit;
 }
 
 /**

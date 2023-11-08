@@ -1,7 +1,7 @@
 import { Router } from 'wint-js/types/types';
 import Wint from 'wint-js/turbo';
 import { Context, Handler } from './types';
-import { ServeOptions } from 'bun';
+import { Server, ServeOptions } from 'bun';
 import { relative, resolve } from 'path';
 import scanDir from './utils/scanDir';
 import { routes, type Routes } from './routes';
@@ -41,6 +41,8 @@ const optimize = () => {
     Request.prototype._pathEnd = 0;
     // @ts-ignore
     Request.prototype.params = null;
+    // @ts-ignore
+    Request.prototype.set = null;
 }
 
 export default class App {
@@ -48,6 +50,11 @@ export default class App {
      * Record of routes
      */
     readonly routes: Routes<any> = routes();
+
+    /**
+     * The current running server
+     */
+    server: Server;
 
     /**
      * Initialize an app
@@ -77,6 +84,15 @@ export default class App {
     }
 
     /**
+     * Start the server
+     */
+    boot() {
+        this.server = Bun.serve(
+            this.options.serve as ServeOptions
+        );
+    }
+
+    /**
      * Register all routes from directories
      */
     async build(serve: boolean = true) {
@@ -91,7 +107,7 @@ export default class App {
 
         // Fetch function
         this.options.serve.fetch = ((c: Context) => {
-            // Parse path
+            // This part can be optimized more
             c._pathStart = c.url.indexOf('/', 12) + 1;
             c._pathEnd = c.url.indexOf('?', c._pathStart);
 
@@ -100,9 +116,9 @@ export default class App {
         }) as any;
 
         // Serve directly
-        if (serve) Bun.serve(
-            this.options.serve as ServeOptions
-        );
+        if (serve) this.boot();
+
+        return this;
     }
 
     /**

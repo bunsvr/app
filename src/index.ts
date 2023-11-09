@@ -99,10 +99,11 @@ export default class App {
         for (var dir of this.options.routes)
             await this.route(dir);
 
-        this.routes.infer(this.options.router);
-
         // Build the find function
-        const find = this.options.router.build().find;
+        const find = this.routes.infer(
+            // This infer step returns the reference to the router
+            this.options.router
+        ).build().find;
 
         // Fetch function
         this.options.serve.fetch = (c: Context) => {
@@ -145,5 +146,10 @@ export default class App {
         }
     }
 }
+
+/**
+ * Shorthand for `new App().build()`.
+ */
+export const init = (options: AppOptions) => new App(options).build();
 
 export * from './routes';

@@ -4,5 +4,6 @@ node_modules
 
 # Build
 index.js
-wrap.js
+send.js
+parser.js
 types

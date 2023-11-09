@@ -11,7 +11,7 @@ Bun.build({
     target: 'bun',
     outdir: '.',
     minify: true,
-    entrypoints: ['./src/index.ts', './src/wrap.ts']
+    entrypoints: ['./src/index.ts', './src/send.ts', './src/parser.ts']
 });
 
 // Build type declarations

@@ -1,5 +1,3 @@
-import App from '../..';
+import { init } from '../..';
 
-new App({
-    routes: [import.meta.dir]
-}).build();
+init({ routes: [import.meta.dir] });

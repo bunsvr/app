@@ -18,6 +18,11 @@ class Routes<Root extends string = '/'> {
     readonly record: Route[] = [];
 
     /**
+     * Route guards
+     */
+    readonly guards: Handler<Root>[] = [];
+
+    /**
      * Create a route group
      */
     constructor(readonly base: Root = '/' as Root) {
@@ -26,10 +31,23 @@ class Routes<Root extends string = '/'> {
             const METHOD = method.toUpperCase();
 
             this[method] = (path, ...handlers) => {
-                this.record.push([METHOD, path, mergeHandlers(handlers)]);
+                if (this.guards.length > 0)
+                    handlers.splice(0, 0, ...this.guards as any);
+
+                this.record.push([
+                    METHOD, path,
+                    mergeHandlers(handlers)
+                ]);
                 return this;
             }
         }
+    }
+
+    /**
+     * Add guards
+     */
+    guard(...fns: Handler<Root>[]) {
+        this.guards.push(...fns);
     }
 
     /**

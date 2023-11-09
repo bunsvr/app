@@ -20,7 +20,7 @@ init({
 ```
 
 Create files in `./src/routes` with extension 
-`.routes.ts` that exports a `main` function.
+`.routes.ts` and export a `main` function .
 ```ts
 import { routes } from '@stricjs/app';
 import send from '@stricjs/app/send';

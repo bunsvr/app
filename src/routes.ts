@@ -1,9 +1,9 @@
 import { join } from 'path/posix';
 import type { Handler } from './types';
-import Wint from 'wint-js/turbo';
 import { ConcatPath } from './utils/concatPath';
 import { lowercaseMethods } from './utils/methods';
 import mergeHandlers from './utils/mergeHandlers';
+import { Router } from 'wint-js/types/types';
 
 export type Route = [method: string, path: string, handler: Handler];
 
@@ -48,7 +48,7 @@ class Routes<Root extends string = '/'> {
     /**
      * Infer all routes to the router
      */
-    infer(router: Wint<Handler>) {
+    infer<T extends Router<Handler>>(router: T) {
         for (var rec of this.record) router.put(
             rec[0], join(this.base, rec[1]), rec[2]
         );

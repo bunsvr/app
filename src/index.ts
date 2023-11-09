@@ -1,4 +1,4 @@
-import Wint from 'wint-js/turbo';
+import { FastWint } from 'wint-js/turbo';
 import { Handler } from './types';
 import { Server, ServeOptions } from 'bun';
 import { relative, resolve } from 'path';
@@ -11,7 +11,7 @@ export interface AppOptions {
     /**
      * The internal router to use
      */
-    router?: Wint<Handler>;
+    router?: FastWint<Handler>;
 
     /**
      * Serve options
@@ -61,8 +61,8 @@ export default class App {
     constructor(readonly options: AppOptions) {
         optimize();
 
-        // Defaults to turbo router
-        options.router ??= new Wint;
+        // Do direct call optimization
+        options.router ??= new FastWint;
 
         // Set to default hostname and port
         options.serve ??= {};
@@ -98,14 +98,10 @@ export default class App {
         for (var dir of this.options.routes)
             await this.route(dir);
 
-        // Do direct call optimization
-        this.routes.infer(
+        this.options.serve.fetch = this.routes.infer(
             // This infer step returns the reference to the router
             this.options.router
-        ).radixOptions.directCall = true;
-
-        // Fetch function
-        this.options.serve.fetch = this.options.router.build().query;
+        ).build().query;
 
         // Serve directly
         if (serve) this.boot();
@@ -120,13 +116,13 @@ export default class App {
         dir = resolve(dir);
 
         // Log the searching directory
-        console.log('Searching', `'${relative(process.cwd(), dir)}':`);
+        console.info('Searching', `'${relative(process.cwd(), dir)}':`);
 
         const res = scanDir(dir, routePathValidator);
 
         for (var absPath of res) {
             // Log the entry file
-            console.log('+ Entry:', `'${relative(dir, absPath)}'`);
+            console.info('+ Entry:', `'${relative(dir, absPath)}'`);
 
             var fn = await import(absPath);
 

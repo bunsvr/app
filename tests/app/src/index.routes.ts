@@ -1,6 +1,6 @@
-import { routes } from '../../..';
-import send from '../../../send';
-import parser from '../../../parser';
+import { routes } from '@stricjs/app';
+import * as send from '@stricjs/app/send';
+import * as parser from '@stricjs/app/parser';
 
 export function main() {
     // JSON parser

@@ -19,16 +19,3 @@ const getFile = globalThis.Bun.file;
  * Send a path as response
  */
 export const file = (path: string) => new Response(getFile(path));
-
-const eventsOpts = {
-    headers: {
-        'Connection': 'Keep-Alive',
-        'Content-Type': 'text/event-stream'
-    }
-}
-
-/**
- * Setup server sent events
- */
-export const events = <R = any>(source: DirectUnderlyingSource<R>) =>
-    new Response(new ReadableStream(source), eventsOpts);

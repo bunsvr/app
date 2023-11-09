@@ -1,6 +1,5 @@
-import { Router } from 'wint-js/types/types';
 import Wint from 'wint-js/turbo';
-import { Context, Handler } from './types';
+import { Handler } from './types';
 import { Server, ServeOptions } from 'bun';
 import { relative, resolve } from 'path';
 import scanDir from './utils/scanDir';
@@ -12,7 +11,7 @@ export interface AppOptions {
     /**
      * The internal router to use
      */
-    router?: Router<Handler>;
+    router?: Wint<Handler>;
 
     /**
      * Serve options
@@ -99,17 +98,14 @@ export default class App {
         for (var dir of this.options.routes)
             await this.route(dir);
 
-        // Build the find function
-        const find = this.routes.infer(
+        // Do direct call optimization
+        this.routes.infer(
             // This infer step returns the reference to the router
             this.options.router
-        ).build().find;
+        ).radixOptions.directCall = true;
 
         // Fetch function
-        this.options.serve.fetch = (c: Context) => {
-            const res = find(c);
-            return res === null ? null : res(c);
-        };
+        this.options.serve.fetch = this.options.router.build().query;
 
         // Serve directly
         if (serve) this.boot();

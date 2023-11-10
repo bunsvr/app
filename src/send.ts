@@ -14,8 +14,13 @@ const jsonOpts = {
  */
 export const json = (d: any) => new Response(stringify(d), jsonOpts);
 
-const getFile = globalThis.Bun.file;
+const getFile = globalThis.Bun?.file;
 /**
  * Send a path as response
  */
 export const file = (path: string) => new Response(getFile(path));
+
+/**
+ * Send response options only
+ */
+export const head = (init: ResponseInit) => new Response(null, init);

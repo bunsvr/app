@@ -87,6 +87,12 @@ export default class App {
             this.options.serve as ServeOptions
         );
 
+        // Log server info
+        console.info(
+            `Server started at http://${this.server.hostname}:${this.server.port}`
+            + ` in ${this.server.development ? 'development' : 'production'} mode`
+        );
+
         return this;
     }
 

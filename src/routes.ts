@@ -32,7 +32,7 @@ class Routes<Root extends string = '/'> {
 
             this[method] = (path, ...handlers) => {
                 if (this.guards.length > 0)
-                    handlers.splice(0, 0, ...this.guards as any);
+                    handlers = [...this.guards, ...handlers] as any;
 
                 this.record.push([
                     METHOD, path,

@@ -1,4 +1,5 @@
 import { Context as RadixContext } from 'wint-js/types/types';
+import { Header, Status, StatusText } from './basic';
 
 /**
  * Represent a request object
@@ -12,7 +13,7 @@ export interface Context<Params = any> extends RadixContext, Omit<Request, 'url'
     /**
      * Send other data
      */
-    set: ResponseInit;
+    set: ResponseOptions;
 
     /**
      * Current request URL
@@ -43,5 +44,25 @@ export type Params<T extends string> = T extends `${infer Segment}/${infer Rest}
  */
 export interface Handler<Path extends string = any> {
     (c: Context<Params<Path>>): any;
+}
+
+/**
+ * ResponseInit with better DX
+ */
+export interface ResponseOptions extends ResponseInit {
+    /**
+     * Headers to be included in the response
+     */
+    headers?: Record<Header, string>;
+
+    /**
+     * The response status code
+     */
+    status?: Status;
+
+    /**
+     * Additional status message
+     */
+    statusText?: StatusText;
 }
 

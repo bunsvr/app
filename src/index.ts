@@ -42,7 +42,7 @@ const optimize = () => {
     Request.prototype.params = null;
     // @ts-ignore
     Request.prototype.set = null;
-}
+}, isBun = !!globalThis.Bun;
 
 export default class App {
     /**
@@ -83,21 +83,23 @@ export default class App {
      * Start the server
      */
     boot() {
-        this.server = Bun.serve(
-            this.options.serve as ServeOptions
-        );
+        if (isBun) {
+            this.server = Bun.serve(
+                this.options.serve as ServeOptions
+            );
 
-        // Log server info
-        console.info(
-            `Server started at http://${this.server.hostname}:${this.server.port}`
-            + ` in ${this.server.development ? 'development' : 'production'} mode`
-        );
+            // Log server info
+            console.info(
+                `Server started at http://${this.server.hostname}:${this.server.port}`
+                + ` in ${this.server.development ? 'development' : 'production'} mode`
+            );
+        }
 
         return this;
     }
 
     /**
-     * Register all routes from directories
+     * Register all routes from directories and returns the serve options
      */
     async build(serve: boolean = true) {
         // Build the routes
@@ -112,7 +114,7 @@ export default class App {
         // Serve directly
         if (serve) this.boot();
 
-        return this;
+        return this.options.serve;
     }
 
     /**

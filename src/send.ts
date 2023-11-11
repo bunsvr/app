@@ -54,7 +54,4 @@ export const chead = (c: Context<any>) =>
  * Redirect to a specific location
  */
 export const to = (Location: string, status: 301 | 302 | 307 | 308) =>
-    new Response(null, {
-        headers: { Location },
-        status
-    });
+    new Response(null, { headers: { Location }, status });

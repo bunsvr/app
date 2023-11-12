@@ -3,7 +3,7 @@ import type { Handler } from './types';
 import { ConcatPath } from './utils/concatPath';
 import { lowercaseMethods } from './utils/methods';
 import mergeHandlers from './utils/mergeHandlers';
-import { Router } from 'wint-js/types/types';
+import { FastWint } from 'wint-js/turbo';
 
 export type Route = [method: string, path: string, handler: Handler];
 
@@ -66,7 +66,7 @@ class Routes<Root extends string = '/'> {
     /**
      * Infer all routes to the router
      */
-    infer<T extends Router<Handler>>(router: T) {
+    infer<T extends FastWint<any>>(router: T) {
         for (var rec of this.record) router.put(
             rec[0], join(this.base, rec[1]), rec[2]
         );

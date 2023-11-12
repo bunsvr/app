@@ -1,5 +1,5 @@
 import { FastWint } from 'wint-js/turbo';
-import { Handler } from './types';
+import { Context } from './types';
 import { Server, ServeOptions } from 'bun';
 import { relative, resolve } from 'path';
 import scanDir from './utils/scanDir';
@@ -8,10 +8,7 @@ import { routes, type Routes } from './routes';
 const routePathValidator = (p: string) => p.endsWith('.routes.ts');
 
 export interface AppOptions {
-    /**
-     * The internal router to use
-     */
-    router?: FastWint<Handler>;
+    router?: FastWint<any>;
 
     /**
      * Serve options
@@ -22,6 +19,11 @@ export interface AppOptions {
      * Directories that contain routes files
      */
     routes: string[];
+
+    /**
+     * Fallback if routes are not found
+     */
+    fallback?: (c: Context) => any;
 }
 
 /**
@@ -62,14 +64,16 @@ export default class App {
         optimize();
 
         // Do direct call optimization
-        options.router ??= new FastWint;
+        this.options.router ??= new FastWint;
+        if (this.options.fallback)
+            this.options.router.fallback(this.options.fallback);
 
         // Set to default hostname and port
-        options.serve ??= {};
+        this.options.serve ??= {};
 
         // Set port in ENV if found
         if (!('port' in options.serve) && 'PORT' in Bun.env)
-            options.serve.port = Number(process.env.PORT);
+            this.options.serve.port = Number(process.env.PORT);
     }
 
     /**
@@ -91,7 +95,7 @@ export default class App {
             // Log server info
             console.info(
                 `Server started at http://${this.server.hostname}:${this.server.port}`
-                + ` in ${this.server.development ? 'development' : 'production'} mode`
+                + ` in ${this.server.development ? 'development' : 'production'} mode.`
             );
         }
 
@@ -101,7 +105,7 @@ export default class App {
     /**
      * Register all routes from directories and returns the serve options
      */
-    async build(serve: boolean = true) {
+    async build(serve?: boolean) {
         // Build the routes
         for (var dir of this.options.routes)
             await this.route(dir);
@@ -109,7 +113,7 @@ export default class App {
         this.options.serve.fetch = this.routes.infer(
             // This infer step returns the reference to the router
             this.options.router
-        ).build().query;
+        ).build().query as any;
 
         // Serve directly
         if (serve) this.boot();
@@ -150,6 +154,6 @@ export default class App {
 /**
  * Shorthand for `new App().build()`.
  */
-export const init = (options: AppOptions) => new App(options).build();
+export const init = (options: AppOptions) => new App(options).build(true);
 
 export * from './routes';

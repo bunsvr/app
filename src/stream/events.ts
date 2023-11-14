@@ -62,7 +62,9 @@ export class Events {
 
             // Readable stream options
             options = `type:'direct'` + `,pull:${isPullAsync ? 'async ' : ''}_=>{${pullCall}}` + (
-                fnCancel === null ? '' : `,cancel:_=>{cancel(${args(fnCancel)})}`
+                fnCancel === null ? '' : `,cancel${
+                    // Check arguments length
+                    fnCancel.length === 1 ? '' : ':_=>{cancel(_,c)}'}`
             );
 
         return Function(

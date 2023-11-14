@@ -1,4 +1,4 @@
-import { json as jsonOpts, html as htmlOpts } from './options';
+import { json as jsonOpts, html as htmlOpts, status as statusCodes } from './options';
 import { ResponseOptions } from './types';
 import { RedirectStatus } from './types/basic';
 
@@ -54,3 +54,9 @@ export const createLink = (Location: string, status: RedirectStatus) => {
 
     return () => new Response(null, options);
 }
+
+/**
+ * Send only status
+ */
+export const status = (status: number) =>
+    new Response(null, statusCodes[status]);

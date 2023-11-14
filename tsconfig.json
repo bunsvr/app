@@ -10,7 +10,7 @@
         "esModuleInterop": true,
         "target": "ESNext",
         "skipDefaultLibCheck": true,
-        "moduleResolution": "node",
+        "moduleResolution": "Bundler",
         "declaration": true,
         "emitDeclarationOnly": true
     },

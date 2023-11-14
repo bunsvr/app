@@ -27,7 +27,7 @@ export type Status =
     | 500 | 501 | 502 | 503 | 504 | 505 | 506 | 507
     | 508 | 510 | 511
     // Other 
-    | (number & {}) | (bigint & {});
+    | (number & {});
 
 export type StatusText =
     // 1xx Informational

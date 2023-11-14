@@ -1,7 +1,10 @@
-import { init } from '../..';
+import App from '@stricjs/app';
+import { status } from '@stricjs/app/send';
 
-init({
+const app = await new App({
     routes: [import.meta.dir],
-    fallback: () => new Response('Not found')
-});
+    fallback: () => status(404)
+}).build();
+
+export default app;
 

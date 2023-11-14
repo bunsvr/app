@@ -1,15 +1,21 @@
 /// <reference types='bun-types' />
 import { existsSync, rmSync } from 'fs';
 
-// Generating types
-const dir = './types';
-if (existsSync(dir))
-    rmSync(dir, { recursive: true });
+const root = import.meta.dir;
+
+// Generating types and lib
+const typeDir = root + '/types';
+if (existsSync(typeDir))
+    rmSync(typeDir, { recursive: true });
+
+const libDir = root + '/lib';
+if (existsSync(libDir))
+    rmSync(libDir, { recursive: true });
 
 Bun.build({
     format: 'esm',
     target: 'bun',
-    outdir: './lib',
+    outdir: libDir,
     minify: true,
     entrypoints: [
         './src/index.ts', './src/send.ts',
@@ -19,4 +25,4 @@ Bun.build({
 });
 
 // Build type declarations
-Bun.spawn(['bun', 'x', 'tsc', '--outdir', dir], { stdout: 'inherit' });
+Bun.spawn(['bun', 'x', 'tsc', '--outdir', typeDir], { stdout: 'inherit' });

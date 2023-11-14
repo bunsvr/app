@@ -1,11 +1,12 @@
-import { events as eventsOpts } from './options';
+export * from './stream/events';
+
+export type StreamUnderlyingSource = ConstructorParameters<typeof ReadableStream>[0];
 
 /**
- * Stream the content of a direct `ReadableStream`
+ * Create and stream the source
  */
-export const direct = <R = any>(
-    source: DirectUnderlyingSource<R>
-) => new Response(
-    new ReadableStream(source),
-    eventsOpts
+export const source = (source: StreamUnderlyingSource) => new Response(
+    new ReadableStream(source)
 );
+
+export default source;

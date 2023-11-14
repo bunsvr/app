@@ -1,6 +1,6 @@
 import { json as jsonOpts, html as htmlOpts, status as statusCodes } from './options';
 import { ResponseOptions } from './types';
-import { RedirectStatus } from './types/basic';
+import { RedirectStatus, Status } from './types/basic';
 
 /**
  * Type for everything that can be passed into `Response` constructor
@@ -8,7 +8,7 @@ import { RedirectStatus } from './types/basic';
 export type Readable = ConstructorParameters<typeof Response>[0];
 
 /**
- * Send text and blob.
+ * Send a response
  */
 export const text = (d: Readable) => new Response(d);
 
@@ -58,5 +58,7 @@ export const createLink = (Location: string, status: RedirectStatus) => {
 /**
  * Send only status
  */
-export const status = (status: number) =>
+export const status = (status: Status) =>
     new Response(null, statusCodes[status]);
+
+export default text;

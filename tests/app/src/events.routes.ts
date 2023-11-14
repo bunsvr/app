@@ -1,26 +1,16 @@
-import * as stream from '@stricjs/app/stream';
-import * as send from '@stricjs/app/send';
+import { events } from '@stricjs/app/stream';
+import send from '@stricjs/app/send';
 import { routes } from '@stricjs/app';
 
-export const main = () => routes()
-    .get('/events', c => {
-        const { signal } = c;
+export function main() {
+    const stream = events(async c => {
+        c.write('event: message\n');
+        c.write('data: Hi\n');
 
-        return stream.direct({
-            type: 'direct',
-            pull: async c => {
-                while (!signal.aborted) {
-                    // Hi
-                    c.write('event: message\n');
-                    c.write('data: Hi\n');
-                    c.flush();
+        await Bun.sleep(3000);
+    }).stream();
 
-                    await Bun.sleep(5000);
-                }
-
-                // End if signal aborted
-                c.close();
-            }
-        });
-    })
-    .get('/hi', () => send.text('Hi'));
+    return routes()
+        .get('/events', stream)
+        .get('/hi', () => send('Hi'));
+}

@@ -8,6 +8,8 @@ export type Header = "Content-Type" | "Authorization" | "User-Agent"
     | "Permissions-Policy" | "X-Powered-By" | "X-DNS-Prefetch-Control" | "Public-Key-Pins"
     | "X-Frame-Options" | "Strict-Transport-Security" | (string & {});
 
+export type RedirectStatus = 301 | 302 | 307 | 308;
+
 export type Status =
     // 1xx 
     100 | 101 | 102 | 103
@@ -15,7 +17,7 @@ export type Status =
     | 200 | 201 | 202 | 203 | 204 | 205 | 206
     | 207 | 208 | 226
     // 3xx
-    | 300 | 301 | 302 | 303 | 304 | 307 | 308
+    | 300 | 303 | 304 | RedirectStatus
     // 4xx
     | 400 | 401 | 402 | 403 | 404 | 405 | 406 | 407
     | 408 | 409 | 410 | 411 | 412 | 413 | 414 | 415

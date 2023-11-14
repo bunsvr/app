@@ -53,7 +53,7 @@ export interface ResponseOptions extends ResponseInit {
     /**
      * Headers to be included in the response
      */
-    headers?: Record<Header, string>;
+    headers?: Partial<Record<Header, string>>;
 
     /**
      * The response status code
@@ -65,4 +65,3 @@ export interface ResponseOptions extends ResponseInit {
      */
     statusText?: StatusText;
 }
-

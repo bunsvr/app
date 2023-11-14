@@ -9,11 +9,12 @@ if (existsSync(dir))
 Bun.build({
     format: 'esm',
     target: 'bun',
-    outdir: '.',
+    outdir: './lib',
     minify: true,
     entrypoints: [
         './src/index.ts', './src/send.ts',
-        './src/parser.ts', './src/stream.ts'
+        './src/parser.ts', './src/stream.ts',
+        './src/options.ts'
     ]
 });
 

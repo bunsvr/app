@@ -1,13 +1,9 @@
-const eventsOpts = {
-    headers: {
-        'Content-Type': 'text/event-stream'
-    }
-}
+import { events as eventsOpts } from './options';
 
 /**
- * Setup server sent events
+ * Stream the content of a direct `ReadableStream`
  */
-export const events = <R = any>(
+export const direct = <R = any>(
     source: DirectUnderlyingSource<R>
 ) => new Response(
     new ReadableStream(source),

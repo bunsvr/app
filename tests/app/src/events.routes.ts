@@ -6,7 +6,7 @@ export const main = () => routes()
     .get('/events', c => {
         const { signal } = c;
 
-        return stream.events({
+        return stream.direct({
             type: 'direct',
             pull: async c => {
                 while (!signal.aborted) {

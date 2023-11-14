@@ -3,8 +3,5 @@ bun.lockb
 node_modules
 
 # Build
-index.js
-send.js
-stream.js
-parser.js
+/lib
 /types

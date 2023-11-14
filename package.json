@@ -4,7 +4,7 @@
   "repository": {
     "url": "https://github.com/bunsvr/app"
   },
-  "main": "index.js",
+  "main": "lib/index.js",
   "devDependencies": {
     "bun-types": "1.0.7",
     "mitata": "^0.1.6",
@@ -22,5 +22,9 @@
     "bun",
     "router"
   ],
+  "exports": {
+    ".": "./lib/index.js",
+    "./*": "./lib/*.js"
+  },
   "sideEffects": false
 }

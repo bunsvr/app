@@ -12,5 +12,8 @@ export function main() {
 
     return routes()
         .get('/events', stream)
-        .get('/hi', () => send('Hi'));
+        .get('/hi', c => {
+            c.set = { body: 'Hi' };
+            return send(c);
+        });
 }

@@ -17,10 +17,8 @@ export const html: ResponseOptions = {
 /**
  * Event stream options
  */
-export const events = {
-    headers: {
-        'Content-Type': 'text/event-stream'
-    }
+export const events: ResponseOptions = {
+    headers: { 'Content-Type': 'text/event-stream' }
 }
 
 /**

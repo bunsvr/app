@@ -1,5 +1,5 @@
 import { json as jsonOpts, html as htmlOpts, status as statusCodes } from './options';
-import { ResponseOptions } from './types';
+import { ResponseOptions, Context } from './types';
 import { RedirectStatus, Status } from './types/basic';
 
 /**
@@ -61,4 +61,29 @@ export const createLink = (Location: string, status: RedirectStatus) => {
 export const status = (status: Status) =>
     new Response(null, statusCodes[status]);
 
-export default text;
+/**
+ * Send the context response
+ */
+export const ctx = (c: Context) => new Response(
+    c.set.body, c.set
+);
+export default ctx;
+
+/**
+ * Context response set
+ */
+function ContextSet() { }
+
+ContextSet.prototype = Object.create(null);
+ContextSet.prototype.headers = Object.create(null);
+ContextSet.prototype.status = 200;
+ContextSet.prototype.statusText = '';
+ContextSet.prototype.body = null;
+
+interface ContextSet extends ResponseOptions { };
+
+/**
+ * Create a context set
+ */
+export const createContext = (): ResponseOptions => new ContextSet;
+export { ContextSet };

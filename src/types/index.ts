@@ -64,4 +64,9 @@ export interface ResponseOptions extends ResponseInit {
      * Additional status message
      */
     statusText?: StatusText;
+
+    /**
+     * The body to send
+     */
+    body?: any;
 }

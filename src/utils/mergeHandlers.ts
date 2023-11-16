@@ -1,32 +1,45 @@
 import { Handler } from '../types';
 
-export default (handlers: Handler[]) => {
+const args = (fn: Handler) => fn.length === 1 ? 'c' : '';
+
+export default (handlers: Handler[], fallback: Handler) => {
     if (handlers.length === 1) return handlers[0];
 
-    let content = '', isAsync = false,
+    const hasFallback = fallback !== null;
+
+    let content = '', isAsync = false, fallbackFn = 'null',
         keys = [], values = [], lastHandler = handlers.length - 1;
 
+    // If a fallback fn exists
+    if (hasFallback) {
+        fallbackFn = `f_(${args(fallback)})`;
+        keys.push('f_');
+        values.push(fallback);
+    }
+
+    // Chain
     for (var i = 0; i < lastHandler; ++i) {
-        var fn = handlers[i], name = 'f' + i;
+        var name = 'f' + i;
 
         content += 'if('
 
         // If function is async
-        if (fn.constructor.name === 'AsyncFunction') {
+        if (handlers[i].constructor.name === 'AsyncFunction') {
             isAsync = true;
             content += 'await ';
         }
 
         // Validation
-        content += name + '(c)===null)return null;';
+        content += name + `(${args(handlers[i])})===null)`
+            + `return ${fallbackFn};`;
 
         keys.push(name);
-        values.push(fn);
+        values.push(handlers[i]);
     }
 
+    // Last handler should be returned directly
     name = 'f' + i;
-
-    content += `return ${name}(c)`;
+    content += `return ${name}(${args(handlers[lastHandler])})`;
 
     keys.push(name);
     values.push(handlers[lastHandler]);
@@ -38,3 +51,15 @@ export default (handlers: Handler[]) => {
 
     return Function(...keys, content)(...values);
 };
+
+
+
+
+
+
+
+
+
+
+
+

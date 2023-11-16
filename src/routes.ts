@@ -13,6 +13,11 @@ export interface RouteHandler<Root extends string> {
 
 class Routes<Root extends string = '/'> {
     /**
+     * Fallback when guard functions reject
+     */
+    fallback: Handler<Root> = null;
+
+    /**
      * Routes record
      */
     readonly record: Route[] = [];
@@ -36,7 +41,7 @@ class Routes<Root extends string = '/'> {
 
                 this.record.push([
                     METHOD, path,
-                    mergeHandlers(handlers)
+                    mergeHandlers(handlers, this.fallback)
                 ]);
                 return this;
             }
@@ -48,6 +53,15 @@ class Routes<Root extends string = '/'> {
      */
     guard(...fns: Handler<Root>[]) {
         this.guards.push(...fns);
+        return this;
+    }
+
+    /**
+     * Handle guards reject
+     */
+    reject(fn: Handler<Root>) {
+        this.fallback = fn;
+        return this;
     }
 
     /**

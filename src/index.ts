@@ -152,3 +152,4 @@ export default class App {
 export const init = (options: AppOptions) => new App(options).build(true);
 
 export * from './routes';
+export * from './config';

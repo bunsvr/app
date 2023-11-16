@@ -6,7 +6,7 @@ import mergeHandlers from './utils/mergeHandlers';
 import { FastWint } from 'wint-js/turbo';
 import normalizePath from './utils/normalizePath';
 
-export type Route = [method: string, path: string, handler: Handler];
+export type Route = [method: string, path: string, handlers: Handler[]];
 
 export interface RouteHandler<Root extends string> {
     <Path extends string>(path: Path, ...handlers: Handler<ConcatPath<Root, Path>>[]): Routes<Root>;
@@ -37,13 +37,7 @@ class Routes<Root extends string = '/'> {
             const METHOD = method.toUpperCase();
 
             this[method] = (path, ...handlers) => {
-                if (this.guards.length > 0)
-                    handlers = [...this.guards, ...handlers] as any;
-
-                this.record.push([
-                    METHOD, path,
-                    mergeHandlers(handlers, this.fallback)
-                ]);
+                this.record.push([METHOD, path, handlers]);
                 return this;
             }
         }
@@ -67,6 +61,15 @@ class Routes<Root extends string = '/'> {
     }
 
     /**
+     * Prepend guard. This function is considered to be internal API.
+     */
+    prependGuards(...fns: Handler<Root>[]) {
+        if (fns.length > 0)
+            this.guards.splice(0, 0, ...fns);
+        return this;
+    }
+
+    /**
      * Handle guards reject
      */
     reject(fn: Handler<Root>) {
@@ -81,9 +84,13 @@ class Routes<Root extends string = '/'> {
         for (var route of routes)
             for (var rec of route.record)
                 this.record.push([
-                    rec[0], normalizePath(
+                    rec[0],
+                    // Push the concatenated path
+                    normalizePath(
                         join(route.base, rec[1])
-                    ), rec[2]
+                    ),
+                    // Load all guards into routes
+                    [...route.guards, ...rec[2]]
                 ]);
 
         return this;
@@ -97,7 +104,8 @@ class Routes<Root extends string = '/'> {
             router.put(
                 rec[0], normalizePath(
                     join(this.base, rec[1])
-                ), rec[2]
+                ),
+                mergeHandlers(rec[2], this.fallback)
             );
 
         return router;

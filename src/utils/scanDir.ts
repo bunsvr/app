@@ -2,6 +2,7 @@ import { exists, readdir, stat } from 'fs/promises';
 import { join, relative } from 'path';
 import { Routes } from '..';
 import { BaseConfig } from '../types/config';
+import { Handler } from '../types';
 
 const isRoute = (path: string) => {
     const lastDot = path.lastIndexOf('.');
@@ -17,7 +18,8 @@ const register = async (
     routes: Routes,
     dir: string,
     absPath: string,
-    prefix: string
+    prefix: string,
+    guards: Handler[]
 ) => {
     // Log the entry file
     console.info('+ Entry:', `'${relative(dir, absPath)}'`);
@@ -42,6 +44,7 @@ const register = async (
             + `does not return a routes group.`
         );
 
+    fn.prependGuards(...guards);
     fn.prefix(prefix);
     routes.extend(fn);
 }
@@ -52,7 +55,9 @@ const f = async (
     prefix: string = '/'
 ) => {
     // Check config
-    const config = join(directory, app.options.config);
+    const config = join(directory, app.options.config)
+
+    let guards = [];
     if (await exists(config)) {
         let baseConfig = await import(config) as BaseConfig;
 
@@ -64,10 +69,13 @@ const f = async (
         if (baseConfig) {
             // Add prefix
             if (baseConfig.prefix) {
-                prefix = join(prefix, baseConfig.prefix)
+                prefix = join(prefix, baseConfig.prefix);
 
                 console.log(`- Current prefix: '${prefix}'`);
             }
+
+            if (Array.isArray(baseConfig.guards))
+                guards = baseConfig.guards;
         }
     }
 
@@ -82,7 +90,7 @@ const f = async (
             if (isRoute(itemPath))
                 await register(
                     app.routes, directory,
-                    itemPath, prefix
+                    itemPath, prefix, guards
                 );
         }
         // Check directory

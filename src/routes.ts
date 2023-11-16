@@ -4,6 +4,7 @@ import { ConcatPath } from './utils/concatPath';
 import { lowercaseMethods } from './utils/methods';
 import mergeHandlers from './utils/mergeHandlers';
 import { FastWint } from 'wint-js/turbo';
+import normalizePath from './utils/normalizePath';
 
 export type Route = [method: string, path: string, handler: Handler];
 
@@ -30,7 +31,7 @@ class Routes<Root extends string = '/'> {
     /**
      * Create a route group
      */
-    constructor(readonly base: Root = '/' as Root) {
+    constructor(public base: Root = '/' as Root) {
         // Initialize route register methods
         for (var method of lowercaseMethods) {
             const METHOD = method.toUpperCase();
@@ -46,6 +47,15 @@ class Routes<Root extends string = '/'> {
                 return this;
             }
         }
+    }
+
+    /**
+     * Add prefix
+     */
+    prefix<B extends string>(base: B): Routes<ConcatPath<B, Root>> {
+        this.base = join(base, this.base) as any;
+
+        return this as any;
     }
 
     /**
@@ -71,7 +81,9 @@ class Routes<Root extends string = '/'> {
         for (var route of routes)
             for (var rec of route.record)
                 this.record.push([
-                    rec[0], join(route.base, rec[1]), rec[2]
+                    rec[0], normalizePath(
+                        join(route.base, rec[1])
+                    ), rec[2]
                 ]);
 
         return this;
@@ -81,9 +93,12 @@ class Routes<Root extends string = '/'> {
      * Infer all routes to the router
      */
     infer<T extends FastWint<any>>(router: T) {
-        for (var rec of this.record) router.put(
-            rec[0], join(this.base, rec[1]), rec[2]
-        );
+        for (var rec of this.record)
+            router.put(
+                rec[0], normalizePath(
+                    join(this.base, rec[1])
+                ), rec[2]
+            );
 
         return router;
     }

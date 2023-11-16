@@ -5,8 +5,6 @@ import { relative, resolve } from 'path';
 import scanDir from './utils/scanDir';
 import { routes, type Routes } from './routes';
 
-const routePathValidator = (p: string) => p.endsWith('.routes.ts');
-
 export interface AppOptions {
     router?: FastWint<any>;
 
@@ -24,6 +22,11 @@ export interface AppOptions {
      * Fallback if routes are not found
      */
     fallback?: (c: Context) => any;
+
+    /**
+     * The config file name
+     */
+    config?: string;
 }
 
 /**
@@ -71,9 +74,16 @@ export default class App {
         // Set to default hostname and port
         this.options.serve ??= {};
 
+        // Base config of each dir
+        this.options.config ??= 'base.ts';
+
         // Set port in ENV if found
         if (!('port' in options.serve) && 'PORT' in Bun.env)
             this.options.serve.port = Number(process.env.PORT);
+
+        // Set development
+        if (!('development' in options.serve))
+            this.options.serve.development = process.env.NODE_ENV !== 'production';
     }
 
     /**
@@ -128,26 +138,11 @@ export default class App {
         dir = resolve(dir);
 
         // Log the searching directory
-        console.info('Searching', `'${relative(process.cwd(), dir)}':`);
-
-        const res = scanDir(dir, routePathValidator);
-
-        for (var absPath of res) {
-            // Log the entry file
-            console.info('+ Entry:', `'${relative(dir, absPath)}'`);
-
-            var fn = await import(absPath);
-
-            // Run the main function
-            if ('main' in fn) {
-                // Evaluate the main function
-                fn = fn.main(this);
-                if (fn instanceof Promise) fn = await fn;
-
-                this.routes.extend(fn);
-            } else
-                throw new Error(`Route file ${absPath} does not export a main function.`);
-        }
+        console.info(
+            'Searching',
+            `'${relative(process.cwd(), dir)}':`
+        );
+        await scanDir(dir, this);
     }
 }
 

@@ -15,4 +15,4 @@ examples
 tsconfig.json
 microbench
 build.ts
-dev.sh
+build.sh

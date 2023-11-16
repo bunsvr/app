@@ -22,7 +22,9 @@ Bun.build({
         './src/parser.ts', './src/stream.ts',
         './src/options.ts'
     ]
-});
+}).then(console.log);
 
 // Build type declarations
-Bun.spawn(['bun', 'x', 'tsc', '--outdir', typeDir], { stdout: 'inherit' });
+Bun.spawn(['bun', 'x', 'tsc', '--outdir', typeDir], {
+    stdout: 'inherit'
+});

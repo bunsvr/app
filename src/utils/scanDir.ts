@@ -2,7 +2,6 @@ import { exists, readdir, stat } from 'fs/promises';
 import { join, relative } from 'path';
 import { Routes } from '..';
 import { BaseConfig } from '../types/config';
-import { Handler } from '../types';
 
 const isRoute = (path: string) => {
     const lastDot = path.lastIndexOf('.');
@@ -14,12 +13,9 @@ const isRoute = (path: string) => {
     return route + 7 === lastDot;
 }
 
-const register = async (
-    routes: Routes,
+const importRoute = async (
     dir: string,
-    absPath: string,
-    prefix: string,
-    guards: Handler[]
+    absPath: string
 ) => {
     // Log the entry file
     console.info('+ Entry:', `'${relative(dir, absPath)}'`);
@@ -44,9 +40,7 @@ const register = async (
             + `does not return a routes group.`
         );
 
-    fn.prependGuards(...guards);
-    fn.prefix(prefix);
-    routes.extend(fn);
+    return fn as Routes<any>;
 }
 
 const f = async (
@@ -55,7 +49,7 @@ const f = async (
     prefix: string = '/'
 ) => {
     // Check config
-    const config = join(directory, app.options.config)
+    const config = join(directory, app.options.config);
 
     let guards = [];
     if (await exists(config)) {
@@ -84,15 +78,18 @@ const f = async (
         var itemPath = join(directory, item),
             fileStat = await stat(itemPath);
 
-        // Check base
         if (fileStat.isFile()) {
             // Register routes
-            if (isRoute(itemPath))
-                await register(
-                    app.routes, directory,
-                    itemPath, prefix, guards
+            if (isRoute(itemPath)) {
+                var route = await importRoute(directory, itemPath);
+
+                // Extend
+                app.routes.extend(
+                    route.prependGuards(...guards).prefix(prefix)
                 );
+            }
         }
+
         // Check directory
         else if (fileStat.isDirectory())
             await f(itemPath, app, prefix);

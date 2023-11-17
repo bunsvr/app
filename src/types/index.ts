@@ -47,6 +47,13 @@ export interface Handler<Path extends string = any> {
 }
 
 /**
+ * A guard function
+ */
+export interface Guard<Path extends string = any> extends Handler<Path> {
+    skipCheck: boolean;
+}
+
+/**
  * ResponseInit with better DX
  */
 export interface ResponseOptions extends ResponseInit {

@@ -1,17 +1,17 @@
 {
   "name": "@stricjs/app",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "repository": {
     "url": "https://github.com/bunsvr/app"
   },
   "main": "lib/index.js",
   "devDependencies": {
-    "bun-types": "1.0.7",
+    "bun-types": "latest",
     "mitata": "^0.1.6",
     "typescript": "^5.2.2",
     "wint-js": "^1.0.8"
   },
-  "description": "Build high-performance, scalable app with Stric",
+  "description": "Build high-performance, scalable web apps with Stric",
   "scripts": {
     "build-test": "bun build.ts && bun test"
   },
@@ -20,7 +20,11 @@
   "keywords": [
     "stric",
     "bun",
-    "router"
+    "router",
+    "scalable",
+    "framework",
+    "fast",
+    "simple"
   ],
   "exports": {
     ".": "./lib/index.js",

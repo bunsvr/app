@@ -12,7 +12,7 @@ export interface RouteHandler<Root extends string> {
     <Path extends string>(path: Path, ...handlers: Handler<ConcatPath<Root, Path>>[]): Routes<Root>;
 }
 
-class Routes<Root extends string = '/'> {
+class Routes<Root extends string = any> {
     /**
      * Fallback when guard functions reject
      */
@@ -80,7 +80,7 @@ class Routes<Root extends string = '/'> {
     /**
      * Extend other routes 
      */
-    extend(...routes: Routes[]) {
+    extend(...routes: Routes<any>[]) {
         for (var route of routes)
             for (var rec of route.record)
                 this.record.push([

@@ -97,6 +97,7 @@ export class App {
      */
     put(routes: Routes<any>) {
         this.routes.extend(routes);
+        return this;
     }
 
     /**
@@ -132,6 +133,7 @@ export class App {
     readonly wsList: ws.Route[] = [];
     ws(f: ws.Route) {
         this.wsList.push(f);
+        return this;
     }
 
     /**
@@ -165,6 +167,8 @@ export class App {
             `'${relative(process.cwd(), dir)}':`
         );
         await scanDir(dir, this);
+
+        return this;
     }
 }
 

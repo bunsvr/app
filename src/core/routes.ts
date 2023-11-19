@@ -1,10 +1,10 @@
 import { join } from 'path/posix';
-import type { Handler } from './types';
-import { ConcatPath } from './utils/concatPath';
-import { lowercaseMethods } from './utils/methods';
-import mergeHandlers from './utils/mergeHandlers';
+import type { Handler } from '../types';
+import { ConcatPath } from '../utils/concatPath';
+import { lowercaseMethods } from '../utils/methods';
+import mergeHandlers from '../utils/mergeHandlers';
 import { FastWint } from 'wint-js/turbo';
-import normalizePath from './utils/normalizePath';
+import normalizePath from '../utils/normalizePath';
 
 export type Route = [method: string, path: string, handlers: Handler[]];
 
@@ -37,7 +37,7 @@ class Routes<Root extends string = any> {
             const METHOD = method.toUpperCase();
 
             this[method] = (path, ...handlers) => {
-                this.record.push([METHOD, path, handlers]);
+                this.record.push([METHOD, normalizePath(path), handlers]);
                 return this;
             }
         }

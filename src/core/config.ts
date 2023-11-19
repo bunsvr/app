@@ -1,5 +1,5 @@
-import { Handler } from './types';
-import { BaseConfig } from './types/config';
+import { Handler } from '../types';
+import { BaseConfig } from '../types/config';
 
 /**
  * Create configs

@@ -1,6 +1,6 @@
 import { exists, readdir, stat } from 'fs/promises';
 import { join, relative } from 'path';
-import { Routes } from '..';
+import { Routes, type App } from '..';
 import { BaseConfig } from '../types/config';
 
 const isRoute = (path: string) => {
@@ -15,7 +15,8 @@ const isRoute = (path: string) => {
 
 const importRoute = async (
     dir: string,
-    absPath: string
+    absPath: string,
+    app: App
 ) => {
     // Log the entry file
     console.info('+ Entry:', `'${relative(dir, absPath)}'`);
@@ -30,7 +31,7 @@ const importRoute = async (
         );
 
     // Evaluate the main function
-    fn = fn.main(this);
+    fn = fn.main(app);
     if (fn instanceof Promise) fn = await fn;
 
     // If it is not route throw an error
@@ -45,7 +46,7 @@ const importRoute = async (
 
 const f = async (
     directory: string,
-    app: import('..').default,
+    app: App,
     prefix: string = '/'
 ) => {
     // Check config
@@ -81,7 +82,7 @@ const f = async (
         if (fileStat.isFile()) {
             // Register routes
             if (isRoute(itemPath)) {
-                var route = await importRoute(directory, itemPath);
+                var route = await importRoute(directory, itemPath, app);
 
                 // Extend
                 app.routes.extend(

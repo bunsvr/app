@@ -3,7 +3,8 @@ import { Context } from './types';
 import { Server, ServeOptions } from 'bun';
 import { relative, resolve } from 'path';
 import scanDir from './utils/scanDir';
-import { routes, type Routes } from './routes';
+import { routes, type Routes } from './core/routes';
+import { ws } from './core/ws';
 
 export interface AppOptions {
     router?: FastWint<any>;
@@ -27,6 +28,11 @@ export interface AppOptions {
      * The config file name
      */
     config?: string;
+
+    /**
+     * Enable WebSocket
+     */
+    ws?: boolean;
 }
 
 /**
@@ -49,7 +55,7 @@ const optimize = () => {
     Request.prototype.set = null;
 }, isBun = !!globalThis.Bun;
 
-export default class App {
+export class App {
     /**
      * Record of routes
      */
@@ -98,9 +104,17 @@ export default class App {
      */
     boot() {
         if (isBun) {
+            if (this.options.ws)
+                // @ts-ignore
+                this.options.serve.websocket = ws.options;
+
             this.server = Bun.serve(
                 this.options.serve as ServeOptions
             );
+
+            // Register WebSocket handlers
+            for (var fn of this.wsList)
+                fn.bind(this.server);
 
             // Log server info
             console.info(
@@ -110,6 +124,14 @@ export default class App {
         }
 
         return this;
+    }
+
+    /**
+     * WebSocket handlers list
+     */
+    readonly wsList: ws.Route[] = [];
+    ws(f: ws.Route) {
+        this.wsList.push(f);
     }
 
     /**
@@ -151,5 +173,8 @@ export default class App {
  */
 export const init = (options: AppOptions) => new App(options).build(true);
 
-export * from './routes';
-export * from './config';
+export * from './core/routes';
+export * from './core/config';
+export * from './core/ws';
+
+export default App;

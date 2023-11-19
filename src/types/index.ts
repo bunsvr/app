@@ -54,13 +54,18 @@ export interface Guard<Path extends string = any> extends Handler<Path> {
 }
 
 /**
+ * Autocomplete headers
+ */
+export interface ContextHeaders extends Partial<Record<Header, string>> { }
+
+/**
  * ResponseInit with better DX
  */
 export interface ResponseOptions extends ResponseInit {
     /**
      * Headers to be included in the response
      */
-    headers?: Partial<Record<Header, string>>;
+    headers?: ContextHeaders;
 
     /**
      * The response status code

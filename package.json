@@ -1,6 +1,6 @@
 {
   "name": "@stricjs/app",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "repository": {
     "url": "https://github.com/bunsvr/app"
   },
@@ -16,7 +16,7 @@
     "build-test": "bun build.ts && bun test"
   },
   "type": "module",
-  "types": "types/index.d.ts",
+  "types": "lib/index.d.ts",
   "keywords": [
     "stric",
     "bun",

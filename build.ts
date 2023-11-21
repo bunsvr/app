@@ -3,11 +3,6 @@ import { existsSync, rmSync } from 'fs';
 
 const root = import.meta.dir;
 
-// Generating types and lib
-const typeDir = root + '/types';
-if (existsSync(typeDir))
-    rmSync(typeDir, { recursive: true });
-
 const libDir = root + '/lib';
 if (existsSync(libDir))
     rmSync(libDir, { recursive: true });
@@ -25,6 +20,6 @@ Bun.build({
 }).then(console.log);
 
 // Build type declarations
-Bun.spawn(['bun', 'x', 'tsc', '--outdir', typeDir], {
+Bun.spawn(['bun', 'x', 'tsc', '--outdir', libDir], {
     stdout: 'inherit'
 });

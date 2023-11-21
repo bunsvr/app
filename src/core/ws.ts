@@ -1,39 +1,47 @@
-import type { Server, WebSocketHandler } from 'bun';
+import type { Server, ServerWebSocket, WebSocketHandler } from 'bun';
 import type { Context, ContextHeaders } from '../types';
 
 const noop = () => null;
 
 export namespace ws {
-    export interface Data<D = any> {
-        f: WebSocketHandler<Data<D>>,
-        body: D
+    export interface Data {
+        f: WebSocketHandler<any>,
+        body: any
     };
+
+    export interface Socket<D = any> extends ServerWebSocket<D> {
+        _: WebSocketHandler<D>;
+    }
 
     // WebSocket routing
     export const options: WebSocketHandler<Data> = {
-        message: (ws, message) => {
-            ws.data.f.message(ws, message);
+        message: (ws: Socket, message) => {
+            ws._.message(ws, message);
         },
 
         // All optional handlers must be set to noop
-        open: ws => {
-            ws.data.f.open(ws);
+        open: (ws: Socket) => {
+            // Set handler
+            ws._ = ws.data.f;
+            ws.data = ws.data.body;
+
+            ws._.open(ws);
         },
 
-        close: (ws, ...args) => {
-            ws.data.f.close(ws, ...args);
+        close: (ws: Socket, ...args) => {
+            ws._.close(ws, ...args);
         },
 
-        drain: ws => {
-            ws.data.f.drain(ws);
+        drain: (ws: Socket) => {
+            ws._.drain(ws);
         },
 
-        ping: (ws, buf) => {
-            ws.data.f.ping(ws, buf);
+        ping: (ws: Socket, buf) => {
+            ws._.ping(ws, buf);
         },
 
-        pong: (ws, buf) => {
-            ws.data.f.pong(ws, buf);
+        pong: (ws: Socket, buf) => {
+            ws._.pong(ws, buf);
         }
     }
 
@@ -63,7 +71,7 @@ export namespace ws {
     /**
      * Create a WebSocket route
      */
-    export const route = <D = any>(f: WebSocketHandler<Data<D>>) => {
+    export const route = <D = any>(f: WebSocketHandler<D>) => {
         if (!f.open) f.open = noop;
         if (!f.close) f.close = noop;
         if (!f.drain) f.drain = noop;

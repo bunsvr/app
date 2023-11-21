@@ -21,5 +21,6 @@ Bun.build({
 
 // Build type declarations
 Bun.spawn(['bun', 'x', 'tsc', '--outdir', libDir], {
-    stdout: 'inherit'
+    stdout: 'inherit',
+    stderr: 'inherit'
 });

@@ -1,0 +1,5 @@
+{
+  "name": "app",
+  "module": "index.ts",
+  "type": "module"
+}

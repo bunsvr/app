@@ -1,25 +1,14 @@
-import { exists, readdir, stat } from 'fs/promises';
 import { join, relative } from 'path';
 import { Routes, type App } from '..';
+import { Glob } from 'bun';
 import { BaseConfig } from '../types/config';
-
-const isRoute = (path: string) => {
-    const lastDot = path.lastIndexOf('.');
-    if (lastDot === -1) return false;
-
-    const route = path.indexOf('.routes.');
-    if (route === -1) return false;
-
-    return route + 7 === lastDot;
-}
+import { readdirSync, statSync, existsSync } from 'fs';
 
 const importRoute = async (
-    dir: string,
     absPath: string,
     app: App
 ) => {
     // Log the entry file
-    console.info('+ Entry:', `'${relative(dir, absPath)}'`);
 
     let fn = await import(absPath);
 
@@ -44,57 +33,67 @@ const importRoute = async (
     return fn as Routes<any>;
 }
 
-const f = async (
-    directory: string,
-    app: App,
-    prefix: string = '/'
-) => {
-    // Check config
-    const config = join(directory, app.options.config);
+const
+    // More patterns might be added
+    patterns = {
+        routes: new Glob('*.routes.*'),
+    },
 
-    let guards = [];
-    if (await exists(config)) {
-        let baseConfig = await import(config) as BaseConfig;
+    f = async (
+        directory: string,
+        app: App,
+        prefix: string = '/'
+    ) => {
 
-        // @ts-ignore
-        if (baseConfig.default)
+        // Check config
+        const config = join(directory, app.options.config);
+
+        let guards = [];
+        if (existsSync(config)) {
+            let baseConfig = await import(config) as BaseConfig;
+
             // @ts-ignore
-            baseConfig = baseConfig.default as BaseConfig;
+            if (baseConfig.default)
+                // @ts-ignore
+                baseConfig = baseConfig.default as BaseConfig;
 
-        if (baseConfig) {
-            // Add prefix
-            if (baseConfig.prefix) {
-                prefix = join(prefix, baseConfig.prefix);
+            if (baseConfig) {
+                // Add prefix
+                if (baseConfig.prefix) {
+                    prefix = join(prefix, baseConfig.prefix);
 
-                console.log(`- Current prefix: '${prefix}'`);
-            }
+                    console.log(`- Current prefix: '${prefix}'`);
+                }
 
-            if (Array.isArray(baseConfig.guards))
-                guards = baseConfig.guards;
-        }
-    }
-
-    // Check all routes
-    for (var item of await readdir(directory)) {
-        var itemPath = join(directory, item),
-            fileStat = await stat(itemPath);
-
-        if (fileStat.isFile()) {
-            // Register routes
-            if (isRoute(itemPath)) {
-                var route = await importRoute(directory, itemPath, app);
-
-                // Extend
-                app.routes.extend(
-                    route.prependGuards(...guards).prefix(prefix)
-                );
+                if (Array.isArray(baseConfig.guards))
+                    guards = baseConfig.guards;
             }
         }
 
-        // Check directory
-        else if (fileStat.isDirectory())
-            await f(itemPath, app, prefix);
+        // Check all routes
+        for (var item of readdirSync(directory)) {
+            var itemPath = join(directory, item),
+                fileStat = statSync(itemPath);
+
+            if (fileStat.isFile()) {
+                // Register routes
+                if (patterns.routes.match(item)) {
+                    // Log routes file path
+                    console.info('+ Entry:', `'${relative(directory, itemPath)}'`);
+
+                    var route = await importRoute(itemPath, app);
+
+                    // Extend
+                    app.routes.extend(
+                        route.prependGuards(...guards).prefix(prefix)
+                    );
+                }
+            }
+
+            // Check directory
+            else if (fileStat.isDirectory())
+                await f(itemPath, app, prefix);
+        }
     }
-}
 
 export default f;

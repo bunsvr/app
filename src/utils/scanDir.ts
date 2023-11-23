@@ -40,9 +40,8 @@ const
     ) => {
 
         // Check config
-        const config = join(directory, app.options.config);
+        const config = join(directory, app.options.config), guards = [];
 
-        let guards = [];
         if (existsSync(config)) {
             let baseConfig = await import(config) as BaseConfig;
 
@@ -59,8 +58,9 @@ const
                     console.log(`- Current prefix: '${prefix}'`);
                 }
 
+                // Push guards
                 if (Array.isArray(baseConfig.guards))
-                    guards = baseConfig.guards;
+                    guards.push(...baseConfig.guards);
             }
         }
 

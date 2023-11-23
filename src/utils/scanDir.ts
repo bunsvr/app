@@ -14,10 +14,7 @@ const importRoute = async (
 
     // Run the main function
     if (!('main' in fn))
-        throw new Error(
-            `Route file ${absPath} does not `
-            + `export a main function.`
-        );
+        throw new Error(`Route file ${absPath} does not export a main function.`);
 
     // Evaluate the main function
     fn = fn.main(app);
@@ -25,10 +22,7 @@ const importRoute = async (
 
     // If it is not route throw an error
     if (!(fn instanceof Routes))
-        throw new Error(
-            `Route file ${absPath} main function`
-            + `does not return a routes group.`
-        );
+        throw new Error(`Route file ${absPath} main function does not return a routes group.`);
 
     return fn as Routes<any>;
 }
@@ -79,7 +73,7 @@ const
                 // Register routes
                 if (patterns.routes.match(item)) {
                     // Log routes file path
-                    console.info('+ Entry:', `'${relative(directory, itemPath)}'`);
+                    console.info(`+ Entry: ${relative(directory, itemPath)}'`);
 
                     var route = await importRoute(itemPath, app);
 

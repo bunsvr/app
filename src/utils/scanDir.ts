@@ -29,9 +29,7 @@ const importRoute = async (
 
 const
     // More patterns might be added
-    patterns = {
-        routes: new Glob('*.routes.*'),
-    },
+    routesPattern = new Glob('*.routes.*'),
 
     f = async (
         directory: string,
@@ -45,9 +43,8 @@ const
         if (existsSync(config)) {
             let baseConfig = await import(config) as BaseConfig;
 
-            // @ts-ignore
+            // Load default export
             if (baseConfig.default)
-                // @ts-ignore
                 baseConfig = baseConfig.default as BaseConfig;
 
             if (baseConfig) {
@@ -71,7 +68,7 @@ const
 
             if (fileStat.isFile()) {
                 // Register routes
-                if (patterns.routes.match(item)) {
+                if (routesPattern.match(item)) {
                     // Log routes file path
                     console.info(`+ Entry: ${relative(directory, itemPath)}'`);
 

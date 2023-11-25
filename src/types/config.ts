@@ -10,4 +10,9 @@ export interface BaseConfig<T extends string = any> {
      * Guards
      */
     guards?: Handler<T>[];
+
+    /**
+     * Default export
+     */
+    default?: BaseConfig<T>;
 }

@@ -1,5 +1,8 @@
 {
   "name": "app",
   "module": "index.ts",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@stricjs/app": "link:@stricjs/app"
+  }
 }

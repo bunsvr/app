@@ -180,5 +180,6 @@ export const init = (options: AppOptions) => new App(options).build(true);
 export * from './core/routes';
 export * from './core/config';
 export * from './core/ws';
+export * from './core/func';
 
 export default App;

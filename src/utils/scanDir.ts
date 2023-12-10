@@ -81,7 +81,7 @@ const
         for (var item of readdirSync(directory)) {
             var itemPath = join(directory, item);
 
-            if (isFile(itemPath)) {
+            if (await isFile(itemPath)) {
                 // Import routes
                 if (routesPattern.match(item)) {
                     // Log routes file path
@@ -98,8 +98,7 @@ const
                 // Match WebSocket route
                 else if (wsPattern.match(item))
                     await registerWS(itemPath, app);
-            }
-            else await scan(itemPath, app, prefix);
+            } else await scan(itemPath, app, prefix);
         }
     }
 

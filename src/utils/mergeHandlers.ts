@@ -19,19 +19,17 @@ export default (handlers: Handler[], fallback: Handler) => {
 
     // Chain
     for (var i = 0; i < lastHandler; ++i) {
-        var name = 'f' + i;
-
-        content += 'if('
+        var name = 'f' + i, fnCall = name + `(${args(handlers[i])})`;
 
         // If function is async
         if (handlers[i].constructor.name === 'AsyncFunction') {
             isAsync = true;
+            fnCall = 'await ' + fnCall;
             content += 'await ';
         }
 
-        // Validation
-        content += name + `(${args(handlers[i])})===null)`
-            + `return ${fallbackFn};`;
+        content += handlers[i].noValidation
+            ? fnCall + ';' : `if(${fnCall}===null)return ${fallbackFn};`;
 
         keys.push(name);
         values.push(handlers[i]);

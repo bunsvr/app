@@ -44,6 +44,8 @@ export type Params<T extends string> = T extends `${infer Segment}/${infer Rest}
  */
 export interface Handler<Path extends string = any> {
     (c: Context<Params<Path>>): any;
+
+    noValidation?: boolean;
 }
 
 /**

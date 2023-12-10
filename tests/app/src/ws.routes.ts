@@ -1,19 +1,9 @@
-import { ws, routes, type App } from '@stricjs/app';
+import { routes } from '@stricjs/app';
+import ping from './ping.ws';
 
-const ping = ws.route<{ id: string }>({
-    message(ws, msg) {
-        if (msg === 'Ping')
-            ws.send(ws.data.id);
-    }
-});
-
-export function main(app: App) {
-    app.ws(ping);
-
+export function main() {
     return routes('/ws')
         .get('/', c => ping.upgrade(c, {
-            data: {
-                id: performance.now().toString()
-            }
+            data: { id: performance.now().toString() }
         }));
 }

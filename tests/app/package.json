@@ -4,5 +4,8 @@
   "type": "module",
   "dependencies": {
     "@stricjs/app": "link:@stricjs/app"
+  },
+  "scripts": {
+    "dev": "bun link @stricjs/app && bun ."
   }
 }

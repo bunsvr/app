@@ -1,5 +1,5 @@
 import { join, relative } from 'path';
-import { Routes, type App } from '..';
+import { Routes, type App, ws } from '..';
 import { Glob } from 'bun';
 import { BaseConfig } from '../types/config';
 import { readdirSync, existsSync } from 'fs';
@@ -43,7 +43,16 @@ const
         return null;
     },
 
+    registerWS = async (path: string, app: App) => {
+        const o = await import(path);
+
+        for (var key in o)
+            if (ws.isRoute(o[key]))
+                app.ws(o[key]);
+    },
+
     routesPattern = new Glob('*.routes.*'),
+    wsPattern = new Glob('*.ws.*'),
 
     scan = async (
         directory: string,
@@ -73,18 +82,22 @@ const
             var itemPath = join(directory, item);
 
             if (isFile(itemPath)) {
-                if (!routesPattern.match(item)) continue;
+                // Import routes
+                if (routesPattern.match(item)) {
+                    // Log routes file path
+                    console.info(`+ Entry: ${relative(directory, itemPath)}'`);
 
-                // Log routes file path
-                console.info(`+ Entry: ${relative(directory, itemPath)}'`);
-
-                // Extend
-                app.routes.extend(
-                    // Get the route
-                    (await importRoute(itemPath, app))
-                        .prependGuards(...guards)
-                        .prefix(prefix)
-                );
+                    // Extend
+                    app.routes.extend(
+                        // Get the route
+                        (await importRoute(itemPath, app))
+                            .prependGuards(...guards)
+                            .prefix(prefix)
+                    );
+                }
+                // Match WebSocket route
+                else if (wsPattern.match(item))
+                    await registerWS(itemPath, app);
             }
             else await scan(itemPath, app, prefix);
         }

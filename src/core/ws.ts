@@ -1,7 +1,7 @@
 import type { Server, ServerWebSocket, WebSocketHandler } from 'bun';
 import type { Context, ContextHeaders } from '../types';
 
-const noop = () => null;
+const noop = () => null, symbol = Symbol('ws');
 
 export namespace ws {
     export interface Data {
@@ -66,6 +66,11 @@ export namespace ws {
          * Current Bun server
          */
         server: Server;
+
+        /**
+         * The special symbol to check for WebSocket route
+         */
+        [symbol]: null;
     }
 
     /**
@@ -86,6 +91,7 @@ export namespace ws {
             // Main route
             o: Route<D> = {
                 server: null,
+                [symbol]: null,
 
                 bind: s => {
                     o.server = s;
@@ -105,4 +111,6 @@ export namespace ws {
 
         return o;
     }
+
+    export const isRoute = (d: any): d is Route => d[symbol] === null;
 }

@@ -1,7 +1,7 @@
 import { routes } from '@stricjs/app';
 import { text } from '@stricjs/app/send';
 
-const list = { '1': 'Reve' };
+const list: Record<string, string> = { '1': 'Reve' };
 
 export function main() {
     return routes('/user/:id')

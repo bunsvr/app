@@ -1,8 +1,12 @@
-import { config, layer } from '@stricjs/app';
+import { layer } from '@stricjs/app';
 
-export default config.guard(
-    '/api', layer(c => {
+// Prefix for all routes
+export const prefix = '/api';
+
+// Guard and layer functions
+export const guards = [
+    layer(c => {
         console.log('A request arrived.');
-        console.log('URL:', c.url);
+        console.log('Request URL:', c.url);
     })
-);
+];

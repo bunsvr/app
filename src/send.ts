@@ -1,4 +1,4 @@
-import { json as jsonOpts, html as htmlOpts, status as statusCodes } from './options';
+import { json as jsonOpts, html as htmlOpts, status as statusCodes } from './utils/options';
 import { ResponseOptions, Context } from './types';
 import { RedirectStatus, Status } from './types/basic';
 

@@ -13,17 +13,15 @@ const
         // Log the entry file
         let fn = await import(absPath);
 
-        // Run the main function
-        if (!('main' in fn))
-            throw new Error(`Route file ${absPath} does not export a main function.`);
+        if ('main' in fn) fn = fn.main(app);
+        else if ('default' in fn) fn = fn.default;
+        else throw new Error(`Route file ${absPath} does not have a default export or export a main function.`);
 
-        // Evaluate the main function
-        fn = fn.main(app);
         if (fn instanceof Promise) fn = await fn;
 
         // If it is not route throw an error
         if (!(fn instanceof Routes))
-            throw new Error(`Route file ${absPath} main function does not return a routes group.`);
+            throw new Error(`Route file ${absPath} main function result or export default is not a routes group.`);
 
         return fn as Routes<any>;
     },

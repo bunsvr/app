@@ -15,7 +15,6 @@ Bun.build({
     entrypoints: [
         './src/index.ts', './src/send.ts',
         './src/parser.ts', './src/stream.ts',
-        './src/options.ts'
     ]
 }).then(console.log);
 

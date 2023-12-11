@@ -1,12 +1,13 @@
 import { routes } from '@stricjs/app';
-import { text } from '@stricjs/app/send';
+import { stat, text } from '@stricjs/app/send';
 
 const list: Record<string, string> = { '1': 'Reve' };
 
-export function main() {
-    return routes('/user/:id')
-        .get('/', c => text(c.params.id))
-        .get('/name', c => text(
-            list[c.params.id] ?? 'User not found'
-        ));
-}
+export default routes('/user/:id')
+    .get('/', c => text(c.params.id))
+    .get('/name', c => {
+        if (c.params.id in list)
+            return text(list[c.params.id]);
+
+        return stat('User not found', 404);
+    });

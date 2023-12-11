@@ -1,5 +1,5 @@
 import { Context } from '../types';
-import { events as eventsOpts } from '../options';
+import { events as eventsOpts } from '../utils/options';
 
 /**
  * Events start function

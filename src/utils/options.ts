@@ -1,4 +1,4 @@
-import { ResponseOptions } from './types';
+import { ResponseOptions } from '../types';
 
 /**
  * JSON response options
@@ -24,5 +24,5 @@ export const events: ResponseOptions = {
 /**
  * Status responses
  */
-export const status = new Array<ResponseOptions>(1000);
+export const status: ResponseOptions[] = new Array(1000);
 for (var i = 0; i < 1000; ++i) status[i] = { status: i };

@@ -62,6 +62,11 @@ export const status = (status: Status) =>
     new Response(null, statusCodes[status]);
 
 /**
+ * Send status with a response
+ */
+export const stat = (d: Readable, status: Status) => new Response(d, statusCodes[status]);
+
+/**
  * Send the context response
  */
 export const ctx = (c: Context) => new Response(

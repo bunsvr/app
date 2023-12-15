@@ -1,7 +1,7 @@
 import { FastWint } from 'wint-js/turbo';
 import { Context } from './types';
 import { Server, ServeOptions } from 'bun';
-import { relative, resolve } from 'path';
+import { resolve } from 'path';
 import scanDir from './utils/scanDir';
 import { routes, type Routes } from './core/routes';
 import { ws } from './core/ws';
@@ -156,18 +156,33 @@ export class App {
     }
 
     /**
+     * Check whether server is a dev server
+     */
+    get dev() {
+        return this.options.serve.development;
+    }
+
+    /**
+     * Set development mode
+     */
+    set dev(value: boolean) {
+        this.options.serve.development = value;
+    }
+
+    /**
+     * Log all routes registered
+     */
+    logRoutes() {
+        if (this.dev)
+            for (var route of this.routes.record)
+                console.log(`${route[0]} ${route[1]}`);
+    }
+
+    /**
      * Add routes from a directory
      */
     async route(dir: string) {
-        dir = resolve(dir);
-
-        // Log the searching directory
-        console.info(
-            'Searching',
-            `'${relative(process.cwd(), dir)}':`
-        );
-        await scanDir(dir, this);
-
+        await scanDir(resolve(dir), this);
         return this;
     }
 }

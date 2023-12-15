@@ -61,7 +61,7 @@ class Routes<Root extends string = any> {
     }
 
     /**
-     * Prepend guard. This function is considered to be internal API.
+     * Prepend guard. This function is considered internal API.
      */
     prependGuards(...fns: Handler<Root>[]) {
         if (fns.length > 0)

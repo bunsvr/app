@@ -13,5 +13,3 @@ app.logRoutes();
 
 // Start the server
 app.boot();
-
-

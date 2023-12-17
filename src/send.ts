@@ -1,6 +1,6 @@
 import { json as jsonOpts, html as htmlOpts, status as statusCodes } from './utils/options';
-import { ResponseOptions, Context } from './types';
-import { RedirectStatus, Status } from './types/basic';
+import type { ResponseOptions, Context } from './types';
+import type { RedirectStatus, Status } from './types/basic';
 
 /**
  * Type for everything that can be passed into `Response` constructor

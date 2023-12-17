@@ -24,9 +24,14 @@ class Routes<Root extends string = any> {
     readonly record: Route[] = [];
 
     /**
-     * Route guards
+     * Route guards - before handling
      */
     readonly guards: Handler<Root>[] = [];
+
+    /**
+     * Route wrappers - after handling
+     */
+    readonly wraps: Handler<Root>[] = [];
 
     /**
      * Create a route group
@@ -61,11 +66,18 @@ class Routes<Root extends string = any> {
     }
 
     /**
+     * Add wraps
+     */
+    wrap(...fns: Handler<Root>[]) {
+        this.wraps.push(...fns);
+        return this;
+    }
+
+    /**
      * Prepend guard. This function is considered internal API.
      */
     prependGuards(...fns: Handler<Root>[]) {
-        if (fns.length > 0)
-            this.guards.splice(0, 0, ...fns);
+        this.guards.unshift(...fns);
         return this;
     }
 
@@ -90,7 +102,7 @@ class Routes<Root extends string = any> {
                         join(route.base, rec[1])
                     ),
                     // Load all guards into routes
-                    [...route.guards, ...rec[2]]
+                    [...route.guards, ...rec[2], ...route.wraps]
                 ]);
 
         return this;

@@ -12,6 +12,11 @@ export interface BaseConfig<T extends string = any> {
     guards?: Handler<T>[];
 
     /**
+     * Wraps
+     */
+    wraps?: Handler<T>[];
+
+    /**
      * Default export
      */
     default?: BaseConfig<T>;

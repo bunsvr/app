@@ -6,18 +6,23 @@ import { readdirSync, existsSync } from 'fs';
 import { Handler } from '../types';
 
 const
+    notObj = (o: any): o is object => o === null || typeof o !== 'object',
+
     // Import a routes file
     importRoute = async (
         absPath: string,
         app: App
     ) => {
-        // Log the entry file
+        // Check import
         let fn = await import(absPath);
+        if (notObj(fn)) throw new Error(`Route file ${absPath} should export a main function or a routes object.`);
 
-        if ('main' in fn) fn = fn.main(app);
-        else if ('default' in fn) fn = fn.default;
-        else throw new Error(`Route file ${absPath} does not have a default export or export a main function.`);
+        // Try to get a route group object by running the main function
+        if (typeof fn.main === 'function') fn = fn.main(app);
+        // Try getting the export default
+        else if (fn.default) fn = fn.default;
 
+        // Unwrap promise
         if (fn instanceof Promise) fn = await fn;
 
         // If it is not route throw an error
@@ -27,8 +32,7 @@ const
         return fn as Routes<any>;
     },
 
-    isFile = (path: string) =>
-        Bun.file(path).exists(),
+    isFile = (path: string) => Bun.file(path).exists(),
 
     // Import a config file 
     importConfig = async (path: string) => {
@@ -42,38 +46,51 @@ const
         return null;
     },
 
-    registerWS = async (path: string, app: App) => {
-        const o = await import(path);
+    // Register a WebSocket route file
+    registerWS = async (absPath: string, app: App) => {
+        // Import and check
+        const o = await import(absPath);
+        if (notObj(o)) throw new Error(`Route file ${absPath} should export some WebSocket routes.`);
 
+        // Try looping through every named export
+        // and find every WebSocket routes available
         for (var key in o)
             if (ws.isRoute(o[key]))
                 app.ws(o[key]);
     },
 
+    // File patterns
     routesPattern = new Glob('*.routes.*'),
     wsPattern = new Glob('*.ws.*'),
 
+    // Recursively scan a directory and register routes
     scan = async (
         directory: string,
         app: App,
         prefix: string = '/',
-        prevGuards: Handler[] = []
+        prevGuards: Handler[] = [],
+        prevWraps: Handler[] = []
     ) => {
-        // Check config
-        const config = await importConfig(
-            join(directory, app.options.config)
-        );
+        const
+            // Import config file and returns the config object
+            config = await importConfig(
+                join(directory, app.options.config)
+            ),
+            // Route guards and wraps
+            guards = [...prevGuards], wraps = [...prevWraps];
 
-        // Route guards
-        const guards = [];
-        guards.push(...prevGuards);
-
+        // Check every option in config
         if (config) {
-            if (config.prefix)
+            if (typeof config.prefix === 'string')
                 prefix = join(prefix, config.prefix);
 
-            if (config.guards)
+            // Append: [Prev guards] -> [Current guards]
+            if (Array.isArray(config.guards))
                 guards.push(...config.guards);
+
+            // Prepend: [Current wrappers] -> [Prev wrappers]
+            if (Array.isArray(config.wraps))
+                wraps.unshift(...config.wraps);
         }
 
         // Check all routes
@@ -84,7 +101,14 @@ const
                 // Import routes
                 if (routesPattern.match(item)) {
                     var route = await importRoute(itemPath, app);
-                    route.prependGuards(...guards).prefix(prefix);
+
+                    // Set current prefix
+                    route.prefix(prefix);
+
+                    // Add previous guards and wraps
+                    route
+                        .prependGuards(...guards)
+                        .wrap(...wraps);
 
                     // Extend
                     app.routes.extend(route);
@@ -94,8 +118,12 @@ const
                     if (wsPattern.match(item))
                         await registerWS(itemPath, app);
             }
-            // Recursively scan dir
-            else await scan(itemPath, app, prefix, guards);
+
+            // Scan the child directory
+            else await scan(
+                itemPath, app,
+                prefix, guards, wraps
+            );
         }
     }
 

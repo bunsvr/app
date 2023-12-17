@@ -3,8 +3,9 @@ import { Context } from './types';
 import { Server, ServeOptions } from 'bun';
 import { resolve } from 'path';
 import scanDir from './utils/scanDir';
-import { routes, type Routes } from './core/routes';
+import { routes, Routes } from './core/routes';
 import { ws } from './core/ws';
+import { ContextSet } from './send';
 
 export interface AppOptions {
     router?: FastWint<any>;
@@ -33,6 +34,12 @@ export interface AppOptions {
      * Enable WebSocket
      */
     ws?: boolean;
+
+    /**
+     * Initialize context set. 
+     * May slightly decrease performance.
+     */
+    contextSet?: boolean;
 }
 
 /**
@@ -42,7 +49,7 @@ export interface MainFunction {
     (app: App): Routes<any> | Promise<Routes<any>>;
 }
 
-const optimize = () => {
+const optimize = (initSet: boolean) => {
     // @ts-ignore
     Request.prototype.path = '';
     // @ts-ignore
@@ -52,7 +59,7 @@ const optimize = () => {
     // @ts-ignore
     Request.prototype.params = null;
     // @ts-ignore
-    Request.prototype.set = null;
+    Request.prototype.set = initSet ? ContextSet.prototype : null;
 }, isBun = !!globalThis.Bun;
 
 export class App {
@@ -70,7 +77,7 @@ export class App {
      * Initialize an app
      */
     constructor(readonly options: AppOptions) {
-        optimize();
+        optimize(options.contextSet);
 
         // Do direct call optimization
         this.options.router ??= new FastWint;

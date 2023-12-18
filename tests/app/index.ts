@@ -1,14 +1,18 @@
-import App from '@stricjs/app';
-import { status } from '@stricjs/app/send';
+import { build } from '@stricjs/app';
+import ctx from '../../lib/send';
 
-const app = new App({
+// Create an register routes
+const app = await build({
     routes: [import.meta.dir + '/src'],
-    fallback: () => status(404),
-    ws: true
+    fallback: c => {
+        c.set.status = 404;
+        return ctx(c);
+    },
+    ws: true,
+    contextSet: true
 });
 
-// Register all routes 
-await app.build();
+// Register all routes
 app.logRoutes();
 
 // Start the server

@@ -1,6 +1,6 @@
 {
   "name": "@stricjs/app",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "repository": {
     "url": "https://github.com/bunsvr/app"
   },
@@ -11,7 +11,7 @@
     "typescript": "^5.2.2",
     "wint-js": "^1.0.8"
   },
-  "description": "Build high-performance, scalable web apps with Stric",
+  "description": "Build high-performance, scalable web apps with Bun",
   "scripts": {
     "build-link": "bun build.ts && bun link"
   },

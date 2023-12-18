@@ -1,11 +1,11 @@
 import { FastWint } from 'wint-js/turbo';
 import { Context } from './types';
-import { Server, ServeOptions } from 'bun';
+import { Server, ServeOptions, WebSocketServeOptions } from 'bun';
 import { resolve } from 'path';
 import scanDir from './utils/scanDir';
 import { routes, Routes } from './core/routes';
 import { ws } from './core/ws';
-import { ContextSet } from './send';
+import { ContextSet, ctx } from './send';
 
 export interface AppOptions {
     router?: FastWint<any>;
@@ -49,18 +49,23 @@ export interface MainFunction {
     (app: App): Routes<any> | Promise<Routes<any>>;
 }
 
-const optimize = (initSet: boolean) => {
-    // @ts-ignore
-    Request.prototype.path = '';
-    // @ts-ignore
-    Request.prototype._pathStart = 0;
-    // @ts-ignore
-    Request.prototype._pathEnd = 0;
-    // @ts-ignore
-    Request.prototype.params = null;
-    // @ts-ignore
-    Request.prototype.set = initSet ? ContextSet.prototype : null;
-}, isBun = !!globalThis.Bun;
+const
+    // Preset all commonly used values
+    optimize = (initSet: boolean) => {
+        // @ts-ignore
+        Request.prototype.path = '';
+        // @ts-ignore
+        Request.prototype._pathStart = 0;
+        // @ts-ignore
+        Request.prototype._pathEnd = 0;
+        // Initialize
+        if (initSet)
+            // @ts-ignore
+            Request.prototype.set = ContextSet.prototype;
+    },
+    isBun = !!globalThis.Bun,
+    // Check whether body has been set yet (defaults to null)
+    routeFallback = (c: Context) => c.set.body;
 
 export class App {
     /**
@@ -108,21 +113,18 @@ export class App {
     }
 
     /**
-     * Start the server
+     * Start the server. Only works in Bun
      */
     boot() {
         if (isBun) {
-            if (this.options.ws)
-                // @ts-ignore
-                this.options.serve.websocket = ws.options;
-
             this.server = Bun.serve(
                 this.options.serve as ServeOptions
             );
 
             // Register WebSocket handlers
-            for (var fn of this.wsList)
-                fn.bind(this.server);
+            if (this.options.ws)
+                for (var fn of this.wsList)
+                    fn.bind(this.server);
 
             // Log server info
             console.info(
@@ -144,22 +146,60 @@ export class App {
     }
 
     /**
+     * Load routes from options.
+     */
+    async loadRoutes() {
+        // All routes directories
+        const routesDirs = this.options.routes;
+
+        switch (routesDirs.length) {
+            case 0: break;
+            case 1:
+                await this.route(routesDirs[0]);
+                break;
+
+            // Set up parallel register
+            default:
+                // Promise list to load
+                const promiseList = new Array(routesDirs.length);
+                for (var i = 0; i < promiseList.length; ++i)
+                    promiseList[i] = this.route(routesDirs[i]);
+
+                await Promise.all(promiseList);
+                break;
+        }
+    }
+
+    /**
      * Register all routes from directories and returns the serve options
      */
     async build(serve?: boolean) {
-        // Build the routes
-        for (var dir of this.options.routes)
-            await this.route(dir);
+        await this.loadRoutes();
 
+        // If default context initialization is set
+        if (this.options.contextSet) {
+            // This returns null to notify 
+            // the router layer to call the fallback
+            if (this.options.fallback)
+                this.routes.wrap(routeFallback);
+
+            this.routes.wrap(ctx);
+        }
+
+        // Set fetch function
         this.options.serve.fetch = this.routes.infer(
             // This infer step returns the reference to the router
             this.options.router
         ).build().query as any;
 
+        // Set generic WebSocket handler
+        if (this.options.ws)
+            (this.options.serve as WebSocketServeOptions).websocket = ws.options;
+
         // Serve directly
         if (serve) this.boot();
 
-        return this.options.serve;
+        return this;
     }
 
     /**
@@ -186,7 +226,7 @@ export class App {
     }
 
     /**
-     * Add routes from a directory
+     * Load routes from a directory
      */
     async route(dir: string) {
         await scanDir(resolve(dir), this);
@@ -195,9 +235,14 @@ export class App {
 }
 
 /**
- * Shorthand for `new App().build()`.
+ * Shorthand for `new App().build(true)`.
  */
 export const init = (options: AppOptions) => new App(options).build(true);
+
+/**
+ * Shorthand for `new App().build()`
+ */
+export const build = (options: AppOptions) => new App(options).build();
 
 export * from './core/routes';
 export * from './core/config';

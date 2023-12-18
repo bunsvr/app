@@ -81,8 +81,8 @@ function ContextSet() { }
 
 ContextSet.prototype = Object.create(null);
 ContextSet.prototype.headers = Object.create(null);
-ContextSet.prototype.status = 200;
-ContextSet.prototype.statusText = '';
+ContextSet.prototype.status = null;
+ContextSet.prototype.statusText = null;
 ContextSet.prototype.body = null;
 
 interface ContextSet extends ResponseOptions { };

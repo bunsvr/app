@@ -25,7 +25,6 @@ export default (handlers: Handler[], fallback: Handler) => {
         if (handlers[i].constructor.name === 'AsyncFunction') {
             isAsync = true;
             fnCall = 'await ' + fnCall;
-            content += 'await ';
         }
 
         content += handlers[i].noValidation

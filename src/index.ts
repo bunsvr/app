@@ -53,19 +53,17 @@ const
     // Preset all commonly used values
     optimize = (initSet: boolean) => {
         // @ts-ignore
-        Request.prototype.path = '';
+        Request.prototype.path = null;
         // @ts-ignore
-        Request.prototype._pathStart = 0;
+        Request.prototype._pathStart = null;
         // @ts-ignore
-        Request.prototype._pathEnd = 0;
+        Request.prototype._pathEnd = null;
         // Initialize
         if (initSet)
             // @ts-ignore
             Request.prototype.set = ContextSet.prototype;
     },
-    isBun = !!globalThis.Bun,
-    // Check whether body has been set yet (defaults to null)
-    routeFallback = (c: Context) => c.set.body;
+    isBun = !!globalThis.Bun;
 
 export class App {
     /**
@@ -177,14 +175,8 @@ export class App {
         await this.loadRoutes();
 
         // If default context initialization is set
-        if (this.options.contextSet) {
-            // This returns null to notify 
-            // the router layer to call the fallback
-            if (this.options.fallback)
-                this.routes.wrap(routeFallback);
-
+        if (this.options.contextSet)
             this.routes.wrap(ctx);
-        }
 
         // Set fetch function
         this.options.serve.fetch = this.routes.infer(
@@ -222,7 +214,7 @@ export class App {
     logRoutes() {
         if (this.dev)
             for (var route of this.routes.record)
-                console.log(`${route[0]} ${route[1]}`);
+                console.info(`${route[0]} ${route[1]}`);
     }
 
     /**

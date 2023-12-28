@@ -1,14 +1,13 @@
-import { FastWint } from 'wint-js/turbo';
+import { t } from 'wint-js';
 import { Context } from './types';
 import { Server, ServeOptions, WebSocketServeOptions } from 'bun';
 import { resolve } from 'path';
 import scanDir from './utils/scanDir';
 import { routes, Routes } from './core/routes';
 import { ws } from './core/ws';
-import { ContextSet, ctx } from './send';
 
 export interface AppOptions {
-    router?: FastWint<any>;
+    router?: t.FastWint;
 
     /**
      * Serve options
@@ -34,12 +33,6 @@ export interface AppOptions {
      * Enable WebSocket
      */
     ws?: boolean;
-
-    /**
-     * Initialize context set. 
-     * May slightly decrease performance.
-     */
-    contextSet?: boolean;
 }
 
 /**
@@ -49,21 +42,7 @@ export interface MainFunction {
     (app: App): Routes<any> | Promise<Routes<any>>;
 }
 
-const
-    // Preset all commonly used values
-    optimize = (initSet: boolean) => {
-        // @ts-ignore
-        Request.prototype.path = null;
-        // @ts-ignore
-        Request.prototype._pathStart = null;
-        // @ts-ignore
-        Request.prototype._pathEnd = null;
-        // Initialize
-        if (initSet)
-            // @ts-ignore
-            Request.prototype.set = ContextSet.prototype;
-    },
-    isBun = !!globalThis.Bun;
+const isBun = !!globalThis.Bun;
 
 export class App {
     /**
@@ -80,10 +59,8 @@ export class App {
      * Initialize an app
      */
     constructor(readonly options: AppOptions) {
-        optimize(options.contextSet);
-
         // Do direct call optimization
-        this.options.router ??= new FastWint;
+        this.options.router ??= new t.FastWint;
         if (this.options.fallback)
             this.options.router.fallback(this.options.fallback);
 
@@ -174,10 +151,6 @@ export class App {
     async build(serve?: boolean) {
         await this.loadRoutes();
 
-        // If default context initialization is set
-        if (this.options.contextSet)
-            this.routes.wrap(ctx);
-
         // Set fetch function
         this.options.serve.fetch = this.routes.infer(
             // This infer step returns the reference to the router
@@ -236,9 +209,24 @@ export const init = (options: AppOptions) => new App(options).build(true);
  */
 export const build = (options: AppOptions) => new App(options).build();
 
+const asyncFunc = async () => { };
+
+/**
+ * Wrap async
+ */
+export const wrapAsync = <T>(f: T): T => {
+    // Override the constructor for the compiler to detect the function as async
+    f.constructor = asyncFunc.constructor;
+    return f;
+}
+
 export * from './core/routes';
 export * from './core/config';
 export * from './core/ws';
 export * from './core/func';
+
+export * from './types';
+export * from './types/basic';
+export * from './types/config';
 
 export default App;

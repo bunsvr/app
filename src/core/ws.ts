@@ -1,5 +1,5 @@
 import type { Server, ServerWebSocket, WebSocketHandler } from 'bun';
-import type { Context, ContextHeaders } from '../types';
+import type { Context } from '../types';
 
 const noop = () => null, symbol = Symbol('ws');
 
@@ -59,7 +59,7 @@ export namespace ws {
          */
         upgrade(ctx: Context, info?: {
             data?: D,
-            headers?: ContextHeaders
+            headers?: HeadersInit
         }): boolean;
 
         /**
@@ -102,10 +102,10 @@ export namespace ws {
                     if (info) {
                         // @ts-ignore Reassign
                         info.data = { f, body: info.data };
-                        return o.server.upgrade(c, info);
+                        return o.server.upgrade(c.req, info);
                     }
 
-                    return o.server.upgrade(c, noDataUpgrade);
+                    return o.server.upgrade(c.req, noDataUpgrade);
                 }
             };
 

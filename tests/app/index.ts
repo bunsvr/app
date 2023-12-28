@@ -1,15 +1,11 @@
 import { build } from '@stricjs/app';
-import ctx from '../../lib/send';
+import { status } from '@stricjs/app/send';
 
 // Create an register routes
 const app = await build({
     routes: [import.meta.dir + '/src'],
-    fallback: c => {
-        c.set.status = 404;
-        return ctx(c);
-    },
+    fallback: () => status(404),
     ws: true,
-    contextSet: true
 });
 
 // Register all routes

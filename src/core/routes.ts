@@ -3,16 +3,18 @@ import type { Handler } from '../types';
 import { ConcatPath } from '../utils/concatPath';
 import { lowercaseMethods } from '../utils/methods';
 import mergeHandlers from '../utils/mergeHandlers';
-import { FastWint } from 'wint-js/turbo';
+import { t } from 'wint-js';
 import normalizePath from '../utils/normalizePath';
 
 export type Route = [method: string, path: string, handlers: Handler[]];
 
-export interface RouteHandler<Root extends string> {
-    <Path extends string>(path: Path, ...handlers: Handler<ConcatPath<Root, Path>>[]): Routes<Root>;
+export interface RouteHandler<Root extends string, State extends t.BaseState> {
+    <Path extends string>(path: Path, ...handlers: Handler<ConcatPath<Root, Path>, State>[]): Routes<Root, State>;
 }
 
-class Routes<Root extends string = any> {
+type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
+
+class Routes<Root extends string = any, State extends t.BaseState = {}> {
     /**
      * Fallback when guard functions reject
      */
@@ -26,12 +28,12 @@ class Routes<Root extends string = any> {
     /**
      * Route guards - before handling
      */
-    readonly guards: Handler<Root>[] = [];
+    readonly guards: Handler<Root, State>[] = [];
 
     /**
      * Route wrappers - after handling
      */
-    readonly wraps: Handler<Root>[] = [];
+    readonly wraps: Handler<Root, State>[] = [];
 
     /**
      * Create a route group
@@ -51,7 +53,7 @@ class Routes<Root extends string = any> {
     /**
      * Add prefix
      */
-    prefix<B extends string>(base: B): Routes<ConcatPath<B, Root>> {
+    prefix<B extends string>(base: B): Routes<ConcatPath<B, Root>, State> {
         this.base = join(base, this.base) as any;
 
         return this as any;
@@ -60,7 +62,7 @@ class Routes<Root extends string = any> {
     /**
      * Add guards
      */
-    guard(...fns: Handler<Root>[]) {
+    guard(...fns: Handler<Root, State>[]) {
         this.guards.push(...fns);
         return this;
     }
@@ -68,15 +70,30 @@ class Routes<Root extends string = any> {
     /**
      * Add wraps
      */
-    wrap(...fns: Handler<Root>[]) {
+    wrap(...fns: Handler<Root, State>[]) {
         this.wraps.push(...fns);
         return this;
     }
 
     /**
+     * Add a state as a guard
+     */
+    state<F extends Handler<Root, State>>(fn: F): Routes<
+        Root, NonNullable<UnwrapPromise<ReturnType<F>>> & State
+    > {
+        const isAsync = fn.constructor.name === 'AsyncFunction';
+
+        return this.guard(
+            Function(
+                'f', `return ${isAsync ? 'async ' : ''}c=>{const r=${isAsync ? 'await ' : ''}f(c);if(r===null)return null;c.state=r}`
+            )(fn)
+        );
+    }
+
+    /**
      * Prepend guard. This function is considered internal API.
      */
-    prependGuards(...fns: Handler<Root>[]) {
+    prependGuards(...fns: Handler<Root, State>[]) {
         this.guards.unshift(...fns);
         return this;
     }
@@ -84,7 +101,7 @@ class Routes<Root extends string = any> {
     /**
      * Handle guards reject
      */
-    reject(fn: Handler<Root>) {
+    reject(fn: Handler<Root, State>) {
         this.fallback = fn;
         return this;
     }
@@ -92,7 +109,7 @@ class Routes<Root extends string = any> {
     /**
      * Extend other routes 
      */
-    extend(...routes: Routes<any>[]) {
+    extend(...routes: Routes[]) {
         for (var route of routes)
             for (var rec of route.record)
                 this.record.push([
@@ -111,7 +128,7 @@ class Routes<Root extends string = any> {
     /**
      * Infer all routes to the router
      */
-    infer<T extends FastWint<any>>(router: T) {
+    infer<T extends t.FastWint>(router: T) {
         for (var rec of this.record)
             router.put(
                 rec[0], normalizePath(
@@ -129,8 +146,8 @@ class Routes<Root extends string = any> {
  */
 export const routes = <Root extends string = any>(base: Root = '/' as Root) => new Routes(base);
 
-interface Routes<Root extends string> extends Record<
-    typeof lowercaseMethods[number], RouteHandler<Root>
+interface Routes<Root extends string, State extends t.BaseState> extends Record<
+    typeof lowercaseMethods[number], RouteHandler<Root, State>
 > { };
 
 export { Routes };

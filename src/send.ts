@@ -1,5 +1,5 @@
 import { json as jsonOpts, html as htmlOpts, status as statusCodes } from './utils/options';
-import type { ResponseOptions, Context } from './types';
+import type { Context } from './types';
 import type { RedirectStatus, Status } from './types/basic';
 
 /**
@@ -35,7 +35,7 @@ export const file = (path: string) =>
 /**
  * Send response options only
  */
-export const head = (init: ResponseOptions) =>
+export const head = (init: ResponseInit) =>
     new Response(null, init);
 
 /**
@@ -48,7 +48,7 @@ export const redirect = (Location: string, status: RedirectStatus) =>
  * Create a redirect function
  */
 export const createLink = (Location: string, status: RedirectStatus) => {
-    const options: ResponseOptions = {
+    const options: ResponseInit = {
         headers: { Location }, status
     };
 
@@ -69,26 +69,4 @@ export const stat = (d: Readable, status: Status) => new Response(d, statusCodes
 /**
  * Send the context response
  */
-export const ctx = (c: Context) => new Response(
-    c.set.body, c.set
-);
-export default ctx;
-
-/**
- * Context response set
- */
-function ContextSet() { }
-
-ContextSet.prototype = Object.create(null);
-ContextSet.prototype.headers = Object.create(null);
-ContextSet.prototype.status = null;
-ContextSet.prototype.statusText = null;
-ContextSet.prototype.body = null;
-
-interface ContextSet extends ResponseOptions { };
-
-/**
- * Create a context set
- */
-export const createContext = (): ResponseOptions => new ContextSet;
-export { ContextSet };
+export const ctx = (c: Context) => new Response(c.body, c);

@@ -3,7 +3,8 @@
   "module": "index.ts",
   "type": "module",
   "dependencies": {
-    "@stricjs/app": "link:@stricjs/app"
+    "@stricjs/app": "link:@stricjs/app",
+    "vld-ts": "latest"
   },
   "scripts": {
     "dev": "bun link @stricjs/app && bun ."

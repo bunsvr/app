@@ -1,49 +1,17 @@
-import { Context as RadixContext } from 'wint-js/types/types';
-import { Header, Status, StatusText } from './basic';
+import { t } from 'wint-js';
 
-/**
- * Represent a request object
- */
-export interface Context<Params = any> extends RadixContext, Omit<Request, 'url' | 'method'> {
+export interface Context<Path extends string = any, State extends t.BaseState = {}> extends t.Context<Path, State> {
     /**
-     * Parsed path parameters
+     * The response body
      */
-    params: Params;
-
-    /**
-     * Send other data
-     */
-    set: ResponseOptions;
-
-    /**
-     * Current request URL
-     */
-    url: string;
-
-    /**
-     * Current request method
-     */
-    method: string;
-}
-
-/**
- * Extract parameters from a path
- */
-export type Params<T extends string> = T extends `${infer Segment}/${infer Rest}`
-    ? (Segment extends `:${infer Param}`
-        ? (Rest extends `*` ? { [K in Param]: string } : { [K in Param]: string } & Params<Rest>)
-        : {}) & Params<Rest>
-    : T extends `:${infer Param}`
-    ? { [K in Param]: string }
-    : T extends `*`
-    ? { '*': string }
-    : {};
+    body?: any;
+};
 
 /**
  * A request handler
  */
-export interface Handler<Path extends string = any> {
-    (c: Context<Params<Path>>): any;
+export interface Handler<Path extends string = any, State extends t.BaseState = {}> {
+    (c: Context<Path, State>): any;
 
     noValidation?: boolean;
 }
@@ -53,34 +21,4 @@ export interface Handler<Path extends string = any> {
  */
 export interface Guard<Path extends string = any> extends Handler<Path> {
     skipCheck: boolean;
-}
-
-/**
- * Autocomplete headers
- */
-export interface ContextHeaders extends Partial<Record<Header, string>> { }
-
-/**
- * ResponseInit with better DX
- */
-export interface ResponseOptions extends ResponseInit {
-    /**
-     * Headers to be included in the response
-     */
-    headers?: ContextHeaders;
-
-    /**
-     * The response status code
-     */
-    status?: Status;
-
-    /**
-     * Additional status message
-     */
-    statusText?: StatusText;
-
-    /**
-     * The body to send
-     */
-    body?: any;
 }

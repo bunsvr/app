@@ -47,10 +47,7 @@ export class Events {
         return this;
     }
 
-    /**
-     * Create a stream
-     */
-    stream(): (c: Context) => Response {
+    private createReadableStreamMacro() {
         const
             { fnPull, fnAbort, fnCancel } = this,
             isPullAsync = fnPull.constructor.name === 'AsyncFunction',
@@ -67,10 +64,27 @@ export class Events {
                     fnCancel.length === 1 ? '' : ':_=>{cancel(_,c)}'}`
             );
 
+        return `new ReadableStream(${options})`;
+    }
+
+    /**
+     * Create a response sender
+     */
+    send(): (c: Context) => Response {
         return Function(
             'pull', 'abort', 'cancel', 'o',
-            `return c=>new Response(new ReadableStream({${options}}),o)`
-        )(fnPull, fnAbort, fnCancel, eventsOpts);
+            `return c=>new Response(${this.createReadableStreamMacro()},o)`
+        )(this.fnPull, this.fnAbort, this.fnCancel, eventsOpts);
+    }
+
+    /**
+     * Create a function that creates a stream
+     */
+    stream(): (c: Context) => ReadableStream {
+        return Function(
+            'pull', 'abort', 'cancel',
+            `return c=>${this.createReadableStreamMacro()}`
+        )(this.fnPull, this.fnAbort, this.fnCancel);
     }
 }
 

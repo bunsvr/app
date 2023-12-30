@@ -212,7 +212,7 @@ export const build = (options: AppOptions) => new App(options).build();
 const asyncFunc = async () => { };
 
 /**
- * Wrap async
+ * Mark a function as async to get detected by the compiler
  */
 export const wrapAsync = <T>(f: T): T => {
     // Override the constructor for the compiler to detect the function as async

@@ -31,6 +31,6 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "wint-js": "^1.1.4"
+    "wint-js": "^1.2.1"
   }
 }

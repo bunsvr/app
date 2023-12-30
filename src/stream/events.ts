@@ -64,7 +64,7 @@ export class Events {
                     fnCancel.length === 1 ? '' : ':_=>{cancel(_,c)}'}`
             );
 
-        return `new ReadableStream(${options})`;
+        return `new ReadableStream({${options}})`;
     }
 
     /**

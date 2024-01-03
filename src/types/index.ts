@@ -14,6 +14,7 @@ export interface Handler<Path extends string = any, State extends t.BaseState = 
     (c: Context<Path, State>): any;
 
     noValidation?: boolean;
+    fallback?: Handler<Path, State>;
 }
 
 /**

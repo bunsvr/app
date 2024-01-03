@@ -5,6 +5,7 @@ import { lowercaseMethods } from '../utils/methods';
 import mergeHandlers from '../utils/mergeHandlers';
 import { t } from 'wint-js';
 import normalizePath from '../utils/normalizePath';
+import { layer } from './func';
 
 export type Route = [method: string, path: string, handlers: Handler[]];
 
@@ -13,6 +14,8 @@ export interface RouteHandler<Root extends string, State extends t.BaseState> {
 }
 
 type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
+
+const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
 class Routes<Root extends string = any, State extends t.BaseState = {}> {
     /**
@@ -68,6 +71,13 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
     }
 
     /**
+     * Add layers (Guards with no validation)
+     */
+    layer(...fns: Handler<Root, State>[]) {
+        return this.guard(...fns.map(layer));
+    }
+
+    /**
      * Add wraps
      */
     wrap(...fns: Handler<Root, State>[]) {
@@ -79,15 +89,62 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
      * Add a state as a guard
      */
     state<F extends Handler<Root, State>>(fn: F): Routes<
-        Root, NonNullable<UnwrapPromise<ReturnType<F>>> & State
-    > {
+        Root, NonNullable<UnwrapPromise<ReturnType<F>>>
+    >
+
+    /**
+     * Add multiple fields to the state
+     */
+    state<O extends Record<string, Handler<Root, State>>>(rec: O): Routes<
+        Root, {
+            [key in keyof O]: NonNullable<UnwrapPromise<ReturnType<O[key]>>>
+        }
+    >
+
+    state(a: any): any {
+        return this.layer(typeof a === 'object' ? this.registerMultipleState(a) : this.registerSingleState(a));
+    }
+
+    private registerMultipleState(rec: Record<string, any>) {
+        let isAsync = false,
+            parts = [], keys = [], values = [];
+
+        for (var key in rec) {
+            if (!isVariable.test(key))
+                throw new Error(`Key \`${key}\` must be in variable format!`);
+
+            // Put the corresponding KV into the args list
+            var fnName = `f_${key}`;
+            keys.push(fnName);
+            values.push(rec[key]);
+
+            parts.push(`const ${key}=`);
+
+            // Async function check
+            if (rec[key].constructor.name === 'AsyncFunction') {
+                isAsync = true;
+                parts.push('await');
+            }
+
+            // Push the function call and condition checking
+            parts.push(
+                fnName, `(${args(rec[key])});`,
+                `if(${key}===null)return null;`
+            );
+        }
+
+        // Set the final state
+        parts.push(`c.state={${Object.keys(rec)}}`);
+
+        return Function(...keys, `return ${isAsync ? 'async ' : ''}c=>{${parts.join('')}}`)(...values);
+    }
+
+    private registerSingleState(fn: any) {
         const isAsync = fn.constructor.name === 'AsyncFunction';
 
-        return this.guard(
-            Function(
-                'f', `return ${isAsync ? 'async ' : ''}c=>{const r=${isAsync ? 'await ' : ''}f(c);if(r===null)return null;c.state=r}`
-            )(fn)
-        );
+        return Function(
+            'f', `return ${isAsync ? 'async ' : ''}c=>{const r=${isAsync ? 'await ' : ''}f(${args(fn)});if(r===null)return null;c.state=r}`
+        )(fn);
     }
 
     /**
@@ -106,11 +163,28 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
         return this;
     }
 
+    private loadFallback() {
+        if (!this.fallback) return;
+
+        // Prevent overriding
+        for (var guard of this.guards)
+            guard.fallback ??= this.fallback;
+
+        for (var wrap of this.wraps)
+            wrap.fallback ??= this.fallback;
+
+        for (var f of this.record)
+            for (var item of f[2])
+                item.fallback ??= this.fallback;
+    }
+
     /**
      * Extend other routes 
      */
     extend(...routes: Routes[]) {
-        for (var route of routes)
+        for (var route of routes) {
+            route.loadFallback();
+
             for (var rec of route.record)
                 this.record.push([
                     rec[0],
@@ -121,6 +195,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
                     // Load all guards into routes
                     [...route.guards, ...rec[2], ...route.wraps]
                 ]);
+        }
 
         return this;
     }
@@ -129,12 +204,14 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
      * Infer all routes to the router
      */
     infer<T extends t.FastWint>(router: T) {
+        this.loadFallback();
+
         for (var rec of this.record)
             router.put(
                 rec[0], normalizePath(
                     join(this.base, rec[1])
                 ),
-                mergeHandlers(rec[2], this.fallback)
+                mergeHandlers(rec[2])
             );
 
         return router;

@@ -1,25 +1,22 @@
 import { Handler } from '../types';
 
-const args = (fn: Handler) => fn.length === 1 ? 'c' : '';
+const args = (fn: Handler) => fn.length === 0 ? '' : 'c';
 
-export default (handlers: Handler[], fallback: Handler) => {
-    if (handlers.length === 1) return handlers[0];
-
-    const hasFallback = fallback !== null;
-
-    let content = '', isAsync = false, fallbackFn = 'null',
+export default (handlers: Handler[]) => {
+    let content = '', isAsync = false,
         keys = [], values = [], lastHandler = handlers.length - 1;
-
-    // If a fallback fn exists
-    if (hasFallback) {
-        fallbackFn = `f_(${args(fallback)})`;
-        keys.push('f_');
-        values.push(fallback);
-    }
 
     // Chain
     for (var i = 0; i < lastHandler; ++i) {
-        var name = 'f' + i, fnCall = name + `(${args(handlers[i])})`;
+        var name = 'f' + i,
+            fnCall = name + `(${args(handlers[i])})`,
+            fnFallback = 'null';
+
+        if (handlers[i].fallback) {
+            fnFallback = 'f_' + i;
+            keys.push(fnFallback);
+            values.push(handlers[i].fallback);
+        }
 
         // If function is async
         if (handlers[i].constructor.name === 'AsyncFunction') {
@@ -28,7 +25,7 @@ export default (handlers: Handler[], fallback: Handler) => {
         }
 
         content += handlers[i].noValidation
-            ? fnCall + ';' : `if(${fnCall}===null)return ${fallbackFn};`;
+            ? fnCall + ';' : `if(${fnCall}===null)return ${fnFallback};`;
 
         keys.push(name);
         values.push(handlers[i]);

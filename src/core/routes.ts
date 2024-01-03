@@ -102,7 +102,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
     >
 
     state(a: any): any {
-        return this.layer(typeof a === 'object' ? this.registerMultipleState(a) : this.registerSingleState(a));
+        return this.guard(typeof a === 'object' ? this.registerMultipleState(a) : this.registerSingleState(a));
     }
 
     private registerMultipleState(rec: Record<string, any>) {

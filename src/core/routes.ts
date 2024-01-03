@@ -211,7 +211,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
                 rec[0], normalizePath(
                     join(this.base, rec[1])
                 ),
-                mergeHandlers(rec[2])
+                mergeHandlers([...this.guards, ...rec[2], ...this.wraps])
             );
 
         return router;

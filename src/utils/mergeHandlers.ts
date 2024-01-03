@@ -13,9 +13,13 @@ export default (handlers: Handler[]) => {
             fnFallback = 'null';
 
         if (handlers[i].fallback) {
+            // Get name and push to key list first
             fnFallback = 'f_' + i;
             keys.push(fnFallback);
             values.push(handlers[i].fallback);
+
+            // Set to caller
+            fnFallback += `(${args(handlers[i].fallback)})`;
         }
 
         // If function is async

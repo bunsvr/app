@@ -8,7 +8,7 @@ export interface EventFunction {
     (controller: ReadableStreamDirectController, ctx: Context): any;
 }
 
-const args = (fn: Function) => fn.length === 1 ? '_' : '_,c';
+const args = (fn: Function) => fn.length === 0 ? '' : fn.length === 1 ? '_' : '_,c';
 
 /**
  * Create an events stream

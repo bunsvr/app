@@ -3,6 +3,8 @@ import { Handler } from '../types';
 const args = (fn: Handler) => fn.length === 0 ? '' : 'c';
 
 export default (handlers: Handler[]) => {
+    if (handlers.length === 1) return handlers[0];
+
     let content = '', isAsync = false,
         keys = [], values = [], lastHandler = handlers.length - 1;
 

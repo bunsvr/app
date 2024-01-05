@@ -9,11 +9,15 @@ import { layer } from './func';
 
 export type Route = [method: string, path: string, handlers: Handler[]];
 
+type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
+
 export interface RouteHandler<Root extends string, State extends t.BaseState> {
     <Path extends string>(path: Path, ...handlers: Handler<ConcatPath<Root, Path>, State>[]): Routes<Root, State>;
 }
 
-type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
+interface Routes<Root extends string, State extends t.BaseState> extends Record<
+    typeof lowercaseMethods[number], RouteHandler<Root, State>
+> { };
 
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
@@ -222,9 +226,5 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
  * Route groups
  */
 export const routes = <Root extends string = any>(base: Root = '/' as Root) => new Routes(base);
-
-interface Routes<Root extends string, State extends t.BaseState> extends Record<
-    typeof lowercaseMethods[number], RouteHandler<Root, State>
-> { };
 
 export { Routes };

@@ -4,6 +4,7 @@ import { Glob } from 'bun';
 
 import { Routes } from '../core/routes';
 import { ws } from '../core/ws';
+import { layer as toLayer } from '../core/func';
 
 import type { BaseConfig } from '../types/config';
 import type { Handler } from '../types';
@@ -93,6 +94,10 @@ const
             // Append: [Prev guards] -> [Current guards]
             if (Array.isArray(config.guards))
                 guards.push(...config.guards);
+
+            // Same as guards
+            if (Array.isArray(config.layers))
+                guards.push(...config.layers.map(toLayer));
 
             // Prepend: [Current wrappers] -> [Prev wrappers]
             if (Array.isArray(config.wraps))

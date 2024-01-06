@@ -12,6 +12,11 @@ export interface BaseConfig<T extends string = any> {
     guards?: Handler<T>[];
 
     /**
+     * Layers for all routes in the directory
+     */
+    layers?: Handler<T>[];
+
+    /**
      * Wraps for all routes in the directory
      */
     wraps?: Handler<T>[];

@@ -1,9 +1,13 @@
 import { join } from 'path';
-import { Routes, type App, ws } from '..';
-import { Glob } from 'bun';
-import { BaseConfig } from '../types/config';
 import { readdirSync, existsSync } from 'fs';
-import { Handler } from '../types';
+import { Glob } from 'bun';
+
+import { Routes } from '../core/routes';
+import { ws } from '../core/ws';
+
+import type { BaseConfig } from '../types/config';
+import type { Handler } from '../types';
+import type { App } from '..';
 
 const
     notObj = (o: any): o is object => o === null || typeof o !== 'object',
@@ -68,15 +72,17 @@ const
         directory: string,
         app: App,
         prefix: string = '/',
+        // Previous stuff
         prevGuards: Handler[] = [],
-        prevWraps: Handler[] = []
+        prevWraps: Handler[] = [],
+        fallback: Handler = null,
     ) => {
         const
             // Import config file and returns the config object
             config = await importConfig(
                 join(directory, app.options.config)
             ),
-            // Route guards and wraps
+            // Route guards, wraps and fallback
             guards = [...prevGuards], wraps = [...prevWraps];
 
         // Check every option in config
@@ -91,6 +97,10 @@ const
             // Prepend: [Current wrappers] -> [Prev wrappers]
             if (Array.isArray(config.wraps))
                 wraps.unshift(...config.wraps);
+
+            // Register fallback
+            if (typeof config.reject === 'function')
+                fallback = config.reject;
         }
 
         // Check all routes
@@ -110,6 +120,9 @@ const
                         .prependGuards(...guards)
                         .wrap(...wraps);
 
+                    // Add fallback if not exists
+                    route.optionalReject(fallback);
+
                     // Extend
                     app.routes.extend(route);
                 }
@@ -121,8 +134,8 @@ const
 
             // Scan the child directory
             else await scan(
-                itemPath, app,
-                prefix, guards, wraps
+                itemPath, app, prefix,
+                guards, wraps, fallback
             );
         }
     }

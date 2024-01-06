@@ -167,8 +167,17 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
         return this;
     }
 
+    /**
+     * Add this reject only if there is no fallback yet
+     */
+    optionalReject(fn: Handler<Root, State>) {
+        if (typeof this.fallback !== 'function')
+            this.fallback = fn;
+        return this;
+    }
+
     private loadFallback() {
-        if (!this.fallback) return;
+        if (typeof this.fallback !== 'function') return;
 
         // Prevent overriding
         for (var guard of this.guards)

@@ -1,25 +1,19 @@
-import { Handler } from '../types';
+import { Handler } from '..';
 import { BaseConfig } from '../types/config';
-import { layer as toLayer } from './func';
+
+const empty = {};
 
 /**
  * Create configs
  */
 export namespace config {
     /**
-     * Register guards
+     * Set a base follows by other configurations
      */
-    export const guard = <T extends string>(prefix: T, ...guards: Handler<T>[]): BaseConfig<T> => ({ prefix, guards });
+    export const base = <T extends string>(prefix: T, config: BaseConfig<T> = empty) => ({ ...config, prefix });
 
     /**
-     * Prefix only
+     * A type-safe wrapper for handler functions
      */
-    export const prefix = (prefix: string) => ({ prefix });
-
-    /**
-     * Register layers
-     */
-    export const layer = <T extends string>(prefix: T, ...guards: Handler<T>[]): BaseConfig<T> => ({
-        prefix, guards: guards.map(toLayer)
-    });
+    export const fn = (...h: Handler[]) => h;
 }

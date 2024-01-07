@@ -109,8 +109,8 @@ const
         }
 
         // Check all routes
-        for (var item of readdirSync(directory)) {
-            var itemPath = join(directory, item);
+        for (const item of readdirSync(directory)) {
+            const itemPath = join(directory, item);
 
             if (await isFile(itemPath)) {
                 // Import routes

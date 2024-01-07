@@ -9,8 +9,8 @@ export default (handlers: Handler[]) => {
         keys = [], values = [], lastHandler = handlers.length - 1;
 
     // Chain
-    for (var i = 0; i < lastHandler; ++i) {
-        var name = 'f' + i,
+    for (let i = 0; i < lastHandler; ++i) {
+        let name = 'f' + i,
             fnCall = name + `(${args(handlers[i])})`,
             fnFallback = 'null';
 
@@ -38,7 +38,7 @@ export default (handlers: Handler[]) => {
     }
 
     // Last handler should be returned directly
-    name = 'f' + i;
+    const name = 'f' + lastHandler;
     content += `return ${name}(${args(handlers[lastHandler])})`;
 
     keys.push(name);

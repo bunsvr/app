@@ -137,7 +137,7 @@ export class App {
             default:
                 // Promise list to load
                 const promiseList = new Array(routesDirs.length);
-                for (var i = 0; i < promiseList.length; ++i)
+                for (let i = 0; i < promiseList.length; ++i)
                     promiseList[i] = this.route(routesDirs[i]);
 
                 await Promise.all(promiseList);

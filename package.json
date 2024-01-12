@@ -1,6 +1,6 @@
 {
   "name": "@stricjs/app",
-  "version": "1.0.0-rc.9",
+  "version": "1.0.0-rc.10",
   "repository": {
     "url": "https://github.com/bunsvr/app"
   },
@@ -31,6 +31,6 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "wint-js": "^1.2.3"
+    "wint-js": "^1.x.x"
   }
 }

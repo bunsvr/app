@@ -17,7 +17,7 @@ export interface AppOptions {
     /**
      * Directories that contain routes files
      */
-    routes: string[];
+    routes?: string[];
 
     /**
      * Fallback if routes are not found
@@ -48,7 +48,7 @@ export class App {
     /**
      * Record of routes
      */
-    readonly routes: Routes<any> = routes();
+    routes: Routes<any> = routes();
 
     /**
      * The current running server
@@ -56,27 +56,55 @@ export class App {
     server: Server;
 
     /**
+     * All app options
+     */
+    readonly options: Required<AppOptions>;
+
+    /**
      * Initialize an app
      */
-    constructor(readonly options: AppOptions) {
+    constructor(options: AppOptions = {}) {
         // Do direct call optimization
-        this.options.router ??= new t.FastWint;
-        if (this.options.fallback)
-            this.options.router.fallback(this.options.fallback);
+        options.router ??= new t.FastWint;
+        if (options.fallback)
+            options.router.fallback(this.options.fallback);
 
         // Set to default hostname and port
-        this.options.serve ??= {};
+        options.serve ??= {};
 
         // Base config of each dir
-        this.options.config ??= 'base.ts';
+        options.config ??= 'base.ts';
+
+        // No routes by default
+        options.routes ??= [];
 
         // Set port in ENV if found
         if (!('port' in options.serve) && 'PORT' in Bun.env)
-            this.options.serve.port = Number(process.env.PORT);
+            options.serve.port = Number(process.env.PORT);
 
         // Set development
         if (!('development' in options.serve))
-            this.options.serve.development = process.env.NODE_ENV !== 'production';
+            options.serve.development = process.env.NODE_ENV !== 'production';
+
+        this.options = options as Required<AppOptions>;
+    }
+
+    /**
+     * Create the app with routes record
+     */
+    static create(routes: Routes, options?: AppOptions) {
+        const app = new App(options);
+        app.routes = routes;
+        return app;
+    }
+
+    /**
+    * Create the app with routes record
+    */
+    static serve(routes: Routes, options?: AppOptions) {
+        const app = new App(options);
+        app.routes = routes;
+        return app.build(true);
     }
 
     /**
@@ -159,10 +187,10 @@ export class App {
 
         // Set generic WebSocket handler
         if (this.options.ws)
-            (this.options.serve as WebSocketServeOptions).websocket = ws.options;
+            (this.options.serve as WebSocketServeOptions<any>).websocket = ws.options;
 
         // Serve directly
-        if (serve) this.boot();
+        if (serve === true) this.boot();
 
         return this;
     }
@@ -171,7 +199,7 @@ export class App {
      * Check whether server is a dev server
      */
     get dev() {
-        return this.options.serve.development;
+        return !!this.options.serve.development;
     }
 
     /**
@@ -215,7 +243,7 @@ const asyncFunc = async () => { };
  * Mark a function as async to get detected by the compiler
  */
 export const wrapAsync = <T>(f: T): T => {
-    // Override the constructor for the compiler to detect the function as async
+    // @ts-ignore Override the constructor for the compiler to detect the function as async
     f.constructor = asyncFunc.constructor;
     return f;
 }

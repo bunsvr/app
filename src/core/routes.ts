@@ -19,6 +19,15 @@ interface Routes<Root extends string, State extends t.BaseState> extends Record<
     typeof lowercaseMethods[number], RouteHandler<Root, State>
 > { };
 
+/**
+ * A routes plugin
+ */
+export interface Plugin<T extends Routes = Routes, R extends Routes = Routes> {
+    (routes: T): R;
+}
+
+type LastOf<T extends any[]> = T extends [...any[], infer R] ? R : never;
+
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
 class Routes<Root extends string = any, State extends t.BaseState = {}> {
@@ -47,7 +56,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
      */
     constructor(public base: Root = '/' as Root) {
         // Initialize route register methods
-        for (var method of lowercaseMethods) {
+        for (const method of lowercaseMethods) {
             const METHOD = method.toUpperCase();
 
             this[method] = (path, ...handlers) => {
@@ -79,6 +88,18 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
      */
     layer(...fns: Handler<Root, State>[]) {
         return this.guard(...fns.map(layer));
+    }
+
+    /**
+     * Plug a plugin
+     */
+    plug<T extends [...Plugin[], Plugin]>(...f: T): ReturnType<LastOf<T>> {
+        let current = this;
+
+        for (let i = 0, len = f.length; i < len; ++i)
+            current = f[i](current) as any;
+
+        return current as any;
     }
 
     /**
@@ -180,13 +201,13 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
         if (typeof this.fallback !== 'function') return;
 
         // Prevent overriding
-        for (var guard of this.guards)
+        for (const guard of this.guards)
             guard.fallback ??= this.fallback;
 
-        for (var wrap of this.wraps)
+        for (const wrap of this.wraps)
             wrap.fallback ??= this.fallback;
 
-        for (var f of this.record)
+        for (const f of this.record)
             for (var item of f[2])
                 item.fallback ??= this.fallback;
     }
@@ -195,7 +216,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
      * Extend other routes 
      */
     extend(...routes: Routes[]) {
-        for (var route of routes) {
+        for (const route of routes) {
             route.loadFallback();
 
             for (var rec of route.record)
@@ -219,7 +240,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
     infer<T extends t.FastWint>(router: T) {
         this.loadFallback();
 
-        for (var rec of this.record)
+        for (const rec of this.record)
             router.put(
                 rec[0], normalizePath(
                     join(this.base, rec[1])

@@ -11,7 +11,7 @@ export type Header = "Content-Type" | "Authorization" | "User-Agent"
 export type RedirectStatus = 301 | 302 | 307 | 308;
 
 export type Status =
-    // 1xx 
+    // 1xx
     100 | 101 | 102 | 103
     // 2xx
     | 200 | 201 | 202 | 203 | 204 | 205 | 206

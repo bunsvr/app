@@ -23,4 +23,4 @@ export const events: ResponseInit = {
  * Status responses
  */
 export const status: ResponseInit[] = new Array(1000);
-for (var i = 0; i < 1000; ++i) status[i] = { status: i };
+for (let i = 0; i < 1000; ++i) status[i] = { status: i };

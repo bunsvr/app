@@ -115,7 +115,7 @@ const
             if (await isFile(itemPath)) {
                 // Import routes
                 if (routesPattern.match(item)) {
-                    var route = await importRoute(itemPath, app);
+                    const route = await importRoute(itemPath, app);
 
                     // Set current prefix
                     route.prefix(prefix);

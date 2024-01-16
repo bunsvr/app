@@ -17,9 +17,3 @@ export interface Handler<Path extends string = any, State extends t.BaseState = 
     fallback?: Handler<Path, State>;
 }
 
-/**
- * A guard function
- */
-export interface Guard<Path extends string = any> extends Handler<Path> {
-    skipCheck: boolean;
-}

@@ -7,15 +7,15 @@ import { t } from 'wint-js';
 import normalizePath from '../utils/normalizePath';
 import { layer } from './func';
 
-export type Route = [method: string, path: string, handlers: Handler[]];
+type LastOf<T extends any[]> = T extends [...any[], infer R] ? R : never;
 
-type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
+export type Route = [method: string, path: string, handlers: Handler[]];
 
 export interface RouteHandler<Root extends string, State extends t.BaseState> {
     <Path extends string>(path: Path, ...handlers: Handler<ConcatPath<Root, Path>, State>[]): Routes<Root, State>;
 }
 
-interface Routes<Root extends string, State extends t.BaseState> extends Record<
+export interface Routes<Root extends string, State extends t.BaseState> extends Record<
     typeof lowercaseMethods[number], RouteHandler<Root, State>
 > { };
 
@@ -23,14 +23,12 @@ interface Routes<Root extends string, State extends t.BaseState> extends Record<
  * A routes plugin
  */
 export interface Plugin<T extends Routes = Routes, R extends Routes = Routes> {
-    (routes: T): R;
+    plugin(routes: T): R;
 }
-
-type LastOf<T extends any[]> = T extends [...any[], infer R] ? R : never;
 
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
-class Routes<Root extends string = any, State extends t.BaseState = any> {
+export class Routes<Root extends string = any, State extends t.BaseState = any> implements Plugin {
     /**
      * Fallback when guard functions reject
      */
@@ -91,13 +89,13 @@ class Routes<Root extends string = any, State extends t.BaseState = any> {
     }
 
     /**
-     * Plug a plugin
+     * Use a plugin
      */
-    plug<T extends [...Plugin<this>[], Plugin<this>]>(...f: T): ReturnType<LastOf<T>> {
+    use<T extends [...Plugin<this>[], Plugin<this>]>(...f: T): ReturnType<LastOf<T>['plugin']> {
         let current = this;
 
         for (let i = 0, len = f.length; i < len; ++i)
-            current = f[i](current) as any;
+            current = f[i].plugin(current) as any;
 
         return current as any;
     }
@@ -114,7 +112,7 @@ class Routes<Root extends string = any, State extends t.BaseState = any> {
      * Add a state as a guard
      */
     state<F extends Handler<Root, State>>(fn: F): Routes<
-        Root, NonNullable<UnwrapPromise<ReturnType<F>>>
+        Root, NonNullable<Awaited<ReturnType<F>>>
     >
 
     /**
@@ -122,7 +120,7 @@ class Routes<Root extends string = any, State extends t.BaseState = any> {
      */
     state<O extends Record<string, Handler<Root, State>>>(rec: O): Routes<
         Root, {
-            [key in keyof O]: NonNullable<UnwrapPromise<ReturnType<O[key]>>>
+            [key in keyof O]: NonNullable<Awaited<ReturnType<O[key]>>>
         }
     >
 
@@ -134,7 +132,7 @@ class Routes<Root extends string = any, State extends t.BaseState = any> {
         let isAsync = false,
             parts = [], keys = [], values = [];
 
-        for (var key in rec) {
+        for (const key in rec) {
             if (!isVariable.test(key))
                 throw new Error(`Key \`${key}\` must be in variable format!`);
 
@@ -194,6 +192,7 @@ class Routes<Root extends string = any, State extends t.BaseState = any> {
     optionalReject(fn: Handler<Root, State>) {
         if (typeof this.fallback !== 'function')
             this.fallback = fn;
+
         return this;
     }
 
@@ -235,6 +234,14 @@ class Routes<Root extends string = any, State extends t.BaseState = any> {
     }
 
     /**
+     * Routes can be used as a plugin
+     */
+    plugin(routes: Routes<any>) {
+        routes.extend(this);
+        return routes;
+    }
+
+    /**
      * Infer all routes to the router
      */
     infer<T extends t.FastWint>(router: T) {
@@ -257,4 +264,7 @@ class Routes<Root extends string = any, State extends t.BaseState = any> {
  */
 export const routes = <Root extends string = any>(base: Root = '/' as Root) => new Routes(base);
 
-export { Routes };
+/**
+ * Create reusable states
+ */
+export const state = <T extends Handler | Record<string, Handler>>(s: T) => s;

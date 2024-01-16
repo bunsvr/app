@@ -30,7 +30,7 @@ type LastOf<T extends any[]> = T extends [...any[], infer R] ? R : never;
 
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
-class Routes<Root extends string = any, State extends t.BaseState = {}> {
+class Routes<Root extends string = any, State extends t.BaseState = any> {
     /**
      * Fallback when guard functions reject
      */
@@ -93,7 +93,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
     /**
      * Plug a plugin
      */
-    plug<T extends [...Plugin[], Plugin]>(...f: T): ReturnType<LastOf<T>> {
+    plug<T extends [...Plugin<this>[], Plugin<this>]>(...f: T): ReturnType<LastOf<T>> {
         let current = this;
 
         for (let i = 0, len = f.length; i < len; ++i)
@@ -139,7 +139,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
                 throw new Error(`Key \`${key}\` must be in variable format!`);
 
             // Put the corresponding KV into the args list
-            var fnName = `f_${key}`;
+            const fnName = `f_${key}`;
             keys.push(fnName);
             values.push(rec[key]);
 
@@ -219,7 +219,7 @@ class Routes<Root extends string = any, State extends t.BaseState = {}> {
         for (const route of routes) {
             route.loadFallback();
 
-            for (var rec of route.record)
+            for (const rec of route.record)
                 this.record.push([
                     rec[0],
                     // Push the concatenated path

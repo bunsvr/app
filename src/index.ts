@@ -90,7 +90,7 @@ export class App {
     }
 
     /**
-     * Create the app with routes record
+     * Create an app with provided routes record
      */
     static create(routes: Routes, options?: AppOptions) {
         const app = new App(options);
@@ -99,12 +99,17 @@ export class App {
     }
 
     /**
-    * Create the app with routes record
+    * Create and build an app with provided routes record
+    */
+    static build(routes: Routes, options?: AppOptions) {
+        return App.create(routes, options).build();
+    }
+
+    /**
+    * Create and serve an app with provided routes record
     */
     static serve(routes: Routes, options?: AppOptions) {
-        const app = new App(options);
-        app.routes = routes;
-        return app.build(true);
+        return App.create(routes, options).build(true);
     }
 
     /**
@@ -126,7 +131,7 @@ export class App {
 
             // Register WebSocket handlers
             if (this.options.ws)
-                for (var fn of this.wsList)
+                for (const fn of this.wsList)
                     fn.bind(this.server);
 
             // Log server info

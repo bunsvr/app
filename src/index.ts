@@ -67,7 +67,7 @@ export class App {
         // Do direct call optimization
         options.router ??= new t.FastWint;
         if (options.fallback)
-            options.router.fallback(this.options.fallback);
+            options.router.fallback(options.fallback);
 
         // Set to default hostname and port
         options.serve ??= {};

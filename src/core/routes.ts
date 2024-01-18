@@ -14,8 +14,6 @@ type Merge<A, B> = B extends object ? (
 type MergeRoutes<A extends Routes, B extends Routes> =
     Routes<A['base'], Merge<StateOf<A>, StateOf<B>>>
 
-type OptionalMerge<A extends Routes | null, B extends Routes> = A extends null ? B : MergeRoutes<A, B>;
-
 export type StateOf<T extends Routes> = T extends Routes<any, infer State> ? State : never;
 
 export type Route = [method: string, path: string, handlers: Handler[]];
@@ -31,13 +29,13 @@ export interface Routes<Root extends string, State extends t.BaseState> extends 
 /**
  * A routes plugin
  */
-export interface Plugin<R extends Routes = Routes, I extends Routes = null> {
-    plugin<T extends Routes>(routes: OptionalMerge<I, T>): MergeRoutes<OptionalMerge<I, T>, R>;
+export interface Plugin<B extends Routes = Routes, R extends B = B> {
+    plugin<T extends B>(routes: T): R;
 }
 
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
-export class Routes<Root extends string = any, State extends t.BaseState = (object & {})> implements Plugin {
+export class Routes<Root extends string = any, State extends t.BaseState = {}> implements Plugin {
     /**
      * Fallback when guard functions reject
      */
@@ -100,7 +98,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = (obje
     /**
      * Non-typesafe plugins
      */
-    plug<T extends Plugin<this, any>[]>(...plugins: T) {
+    plug<T extends Plugin<this>[]>(...plugins: T) {
         for (const f of plugins)
             f.plugin(this);
 
@@ -110,7 +108,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = (obje
     /**
      * Register a plugin
      */
-    use<T extends Plugin<this, this>>(f: T): ReturnType<T['plugin']> {
+    use<T extends Plugin<this>>(f: T): MergeRoutes<this, ReturnType<T['plugin']>> {
         return f.plugin(this as any) as any;
     }
 
@@ -261,7 +259,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = (obje
     /**
      * Routes can be used as a plugin
      */
-    plugin(routes: Routes<any>) {
+    plugin<T extends Routes>(routes: T) {
         routes.extend(this);
         return routes;
     }
@@ -293,3 +291,8 @@ export const routes = <Root extends string = any>(base: Root = '/' as Root) => n
  * Create reusable states
  */
 export const state = <T extends Handler | Record<string, Handler>>(s: T) => s;
+
+/**
+ * Create a plugin from a function
+ */
+export const plugin = <R extends Routes>(plugin: <T extends Routes>(routes: T) => R): Plugin<Routes, R> => ({ plugin });

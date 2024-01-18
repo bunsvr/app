@@ -1,23 +1,23 @@
 /**
  * JSON response options
  */
-export const json: ResponseInit = {
+export const json = {
     headers: { 'Content-Type': 'application/json' }
-};
+} satisfies ResponseInit;
 
 /**
  * HTML response options
  */
-export const html: ResponseInit = {
+export const html = {
     headers: { 'Content-Type': 'text/html' }
-};
+} satisfies ResponseInit;
 
 /**
  * Event stream options
  */
-export const events: ResponseInit = {
+export const events = {
     headers: { 'Content-Type': 'text/event-stream' }
-}
+} satisfies ResponseInit;
 
 /**
  * Status responses

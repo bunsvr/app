@@ -98,13 +98,19 @@ export class Routes<Root extends string = any, State extends t.BaseState = (obje
     /**
      * Register a plugin
      */
-    use<T extends Plugin>(f: T): this;
-
+    use<T extends [...Plugin[], Plugin]>(...f: T): this;
     /**
      * Register a plugin
      */
-    use<T extends Plugin<this, this>>(f: T): ReturnType<T['plugin']> {
-        return f.plugin(this as any) as any;
+    use<T extends Plugin<this, this>>(f: T): ReturnType<T['plugin']>;
+
+    use(f: any): this {
+        if (Array.isArray(f))
+            for (let i = 0, len = f.length; i < len; ++i)
+                f[i].plugin(this);
+        else f.plugin(this);
+
+        return this;
     }
 
     /**

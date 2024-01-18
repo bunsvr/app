@@ -256,6 +256,7 @@ export const wrapAsync = <T>(f: T): T => {
 export * from './core/routes';
 export * from './core/config';
 export * from './core/ws';
+export * from './client';
 export * from './core/func';
 
 export * from './types';

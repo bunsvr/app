@@ -14,6 +14,8 @@ type Merge<A, B> = B extends object ? (
 type MergeRoutes<A extends Routes, B extends Routes> =
     Routes<A['base'], Merge<StateOf<A>, StateOf<B>>>
 
+type OptionalMerge<A extends Routes | null, B extends Routes> = A extends null ? B : MergeRoutes<A, B>;
+
 export type StateOf<T extends Routes> = T extends Routes<any, infer State> ? State : never;
 
 export type Route = [method: string, path: string, handlers: Handler[]];
@@ -30,7 +32,7 @@ export interface Routes<Root extends string, State extends t.BaseState> extends 
  * A routes plugin
  */
 export interface Plugin<R extends Routes = Routes, I extends Routes = null> {
-    plugin<T extends Routes>(routes: I extends null ? T : MergeRoutes<T, I>): MergeRoutes<T, R>;
+    plugin<T extends Routes>(routes: OptionalMerge<I, T>): MergeRoutes<OptionalMerge<I, T>, R>;
 }
 
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
@@ -96,21 +98,20 @@ export class Routes<Root extends string = any, State extends t.BaseState = (obje
     }
 
     /**
-     * Register a plugin
+     * Non-typesafe plugins
      */
-    use<T extends [...Plugin[], Plugin]>(...f: T): this;
+    plug<T extends Plugin<this, any>[]>(...plugins: T) {
+        for (const f of plugins)
+            f.plugin(this);
+
+        return this;
+    }
+
     /**
      * Register a plugin
      */
-    use<T extends Plugin<this, this>>(f: T): ReturnType<T['plugin']>;
-
-    use(f: any): this {
-        if (Array.isArray(f))
-            for (let i = 0, len = f.length; i < len; ++i)
-                f[i].plugin(this);
-        else f.plugin(this);
-
-        return this;
+    use<T extends Plugin<this, this>>(f: T): ReturnType<T['plugin']> {
+        return f.plugin(this as any) as any;
     }
 
     /**

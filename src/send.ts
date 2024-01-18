@@ -75,6 +75,6 @@ export const ctx = (c: Context) => new Response(c.body, c);
 /**
  * Plugin to automatically send response based on context data
  */
-export const plug = {
+export const plug: Plugin = {
     plugin: routes => routes.wrap(ctx).reject(ctx)
-} satisfies Plugin;
+};

@@ -7,7 +7,14 @@ import { t } from 'wint-js';
 import normalizePath from '../utils/normalizePath';
 import { layer } from './func';
 
-type LastOf<T extends any[]> = T extends [...any[], infer R] ? R : never;
+type Merge<A, B> = B extends object ? (
+    A extends object ? A & B : B
+) : B;
+
+type MergeRoutes<A extends Routes, B extends Routes> =
+    Routes<A['base'], Merge<StateOf<A>, StateOf<B>>>
+
+export type StateOf<T extends Routes> = T extends Routes<any, infer State> ? State : never;
 
 export type Route = [method: string, path: string, handlers: Handler[]];
 
@@ -22,13 +29,13 @@ export interface Routes<Root extends string, State extends t.BaseState> extends 
 /**
  * A routes plugin
  */
-export interface Plugin<T extends Routes = Routes, R extends Routes = Routes> {
-    plugin(routes: T): R;
+export interface Plugin<R extends Routes = Routes, I extends Routes = null> {
+    plugin<T extends Routes>(routes: I extends null ? T : MergeRoutes<T, I>): MergeRoutes<T, R>;
 }
 
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
-export class Routes<Root extends string = any, State extends t.BaseState = any> implements Plugin {
+export class Routes<Root extends string = any, State extends t.BaseState = unknown> implements Plugin {
     /**
      * Fallback when guard functions reject
      */
@@ -91,13 +98,8 @@ export class Routes<Root extends string = any, State extends t.BaseState = any> 
     /**
      * Use a plugin
      */
-    use<T extends [...Plugin<this>[], Plugin<this>]>(...f: T): ReturnType<LastOf<T>['plugin']> {
-        let current = this;
-
-        for (let i = 0, len = f.length; i < len; ++i)
-            current = f[i].plugin(current) as any;
-
-        return current as any;
+    use<T extends Plugin<this, this>>(f: T): ReturnType<T['plugin']> {
+        return f.plugin(this as any) as any;
     }
 
     /**
@@ -121,12 +123,14 @@ export class Routes<Root extends string = any, State extends t.BaseState = any> 
     state<O extends Record<string, Handler<Root, State>>>(rec: O): Routes<
         Root, {
             [key in keyof O]: NonNullable<Awaited<ReturnType<O[key]>>>
-        }
+        } & State
     >
 
     state(a: any): any {
         return this.guard(typeof a === 'object' ? this.registerMultipleState(a) : this.registerSingleState(a));
     }
+
+    private hasMultipleState = false;
 
     private registerMultipleState(rec: Record<string, any>) {
         let isAsync = false,
@@ -146,7 +150,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = any> 
             // Async function check
             if (rec[key].constructor.name === 'AsyncFunction') {
                 isAsync = true;
-                parts.push('await');
+                parts.push('await ');
             }
 
             // Push the function call and condition checking
@@ -157,12 +161,21 @@ export class Routes<Root extends string = any, State extends t.BaseState = any> 
         }
 
         // Set the final state
-        parts.push(`c.state={${Object.keys(rec)}}`);
+        if (this.hasMultipleState) {
+            for (const key in rec)
+                parts.push(`c.state.${key}=${key}`, ';');
+
+            parts.pop();
+        } else {
+            this.hasMultipleState = true;
+            parts.push(`c.state={${Object.keys(rec)}}`);
+        }
 
         return Function(...keys, `return ${isAsync ? 'async ' : ''}c=>{${parts.join('')}}`)(...values);
     }
 
     private registerSingleState(fn: any) {
+        this.hasMultipleState = false;
         const isAsync = fn.constructor.name === 'AsyncFunction';
 
         return Function(
@@ -207,7 +220,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = any> 
             wrap.fallback ??= this.fallback;
 
         for (const f of this.record)
-            for (var item of f[2])
+            for (const item of f[2])
                 item.fallback ??= this.fallback;
     }
 

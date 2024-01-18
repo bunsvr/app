@@ -35,7 +35,7 @@ export interface Plugin<R extends Routes = Routes, I extends Routes = null> {
 
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
-export class Routes<Root extends string = any, State extends t.BaseState = unknown> implements Plugin {
+export class Routes<Root extends string = any, State extends t.BaseState = (object & {})> implements Plugin {
     /**
      * Fallback when guard functions reject
      */
@@ -96,7 +96,12 @@ export class Routes<Root extends string = any, State extends t.BaseState = unkno
     }
 
     /**
-     * Use a plugin
+     * Register a plugin
+     */
+    use<T extends Plugin>(f: T): this;
+
+    /**
+     * Register a plugin
      */
     use<T extends Plugin<this, this>>(f: T): ReturnType<T['plugin']> {
         return f.plugin(this as any) as any;

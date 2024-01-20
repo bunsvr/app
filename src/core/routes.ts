@@ -123,27 +123,35 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
     /**
      * Add a state as a guard
      */
-    state<F extends Handler<Root, State>>(fn: F): Routes<
+    state<F extends Handler<Root, State>>(fn: F, reject?: Handler<Root, State>): Routes<
         Root, NonNullable<Awaited<ReturnType<F>>>
     >
 
     /**
      * Add multiple fields to the state
      */
-    state<O extends Record<string, Handler<Root, State>>>(rec: O): Routes<
+    state<O extends Record<string, Handler<Root, State>>>(rec: O, reject?: Handler<Root, State>): Routes<
         Root, {
             [key in keyof O]: NonNullable<Awaited<ReturnType<O[key]>>>
         } & State
     >
 
-    state(a: any): any {
-        return this.guard(typeof a === 'object' ? this.registerMultipleState(a) : this.registerSingleState(a));
+    state(a: any, reject: any): any {
+        const handler: Handler<Root, State> = typeof a === 'object'
+            ? this.registerMultipleState(a)
+            : this.registerSingleState(a);
+
+        // Set reject for only this state
+        if (typeof reject !== 'undefined')
+            handler.fallback = reject;
+
+        return this.guard(handler);
     }
 
     private hasMultipleState = false;
 
-    private registerMultipleState(rec: Record<string, any>) {
-        let isAsync = false,
+    private registerMultipleState(rec: Record<string, Handler>) {
+        let isAsync = false, layerStates = {},
             parts = [], keys = [], values = [];
 
         for (const key in rec) {
@@ -155,19 +163,20 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
             keys.push(fnName);
             values.push(rec[key]);
 
-            parts.push(`const ${key}=`);
+            let fnCall = `${fnName}(${args(rec[key])})`;
 
             // Async function check
             if (rec[key].constructor.name === 'AsyncFunction') {
                 isAsync = true;
-                parts.push('await ');
+                fnCall += 'await ';
             }
 
+            // Save to layer states (no checking)
+            if (rec[key].noValidation)
+                layerStates[key] = fnCall;
             // Push the function call and condition checking
-            parts.push(
-                fnName, `(${args(rec[key])});`,
-                `if(${key}===null)return null;`
-            );
+            else
+                parts.push(`const ${key}=`, fnCall, `if(${key}===null)return null;`);
         }
 
         // Set the final state
@@ -175,10 +184,19 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
             for (const key in rec)
                 parts.push(`c.state.${key}=${key}`, ';');
 
+            // States that requires no checking
+            for (const key in layerStates)
+                parts.push(`c.state.${key}=${layerStates[key]}`, ';');
+
             parts.pop();
         } else {
             this.hasMultipleState = true;
-            parts.push(`c.state={${Object.keys(rec)}}`);
+
+            const states = Object.keys(rec);
+            for (const key in layerStates)
+                states.push(`${key}:${layerStates[key]}`);
+
+            parts.push(`c.state={${states.join()}}`);
         }
 
         return Function(...keys, `return ${isAsync ? 'async ' : ''}c=>{${parts.join('')}}`)(...values);

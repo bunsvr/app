@@ -205,42 +205,30 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
      * Handle guards reject
      */
     reject(fn: Handler<Root, State>) {
-        this.fallback = fn;
+        this.loadFallback(fn);
         return this;
     }
 
-    /**
-     * Add this reject only if there is no fallback yet
-     */
-    optionalReject(fn: Handler<Root, State>) {
-        if (typeof this.fallback !== 'function')
-            this.fallback = fn;
-
-        return this;
-    }
-
-    private loadFallback() {
-        if (typeof this.fallback !== 'function') return;
+    private loadFallback(fn: any) {
+        if (typeof fn !== 'function') return;
 
         // Prevent overriding
         for (const guard of this.guards)
-            guard.fallback ??= this.fallback;
+            guard.fallback ??= fn;
 
         for (const wrap of this.wraps)
-            wrap.fallback ??= this.fallback;
+            wrap.fallback ??= fn;
 
         for (const f of this.record)
             for (const item of f[2])
-                item.fallback ??= this.fallback;
+                item.fallback ??= fn;
     }
 
     /**
      * Extend other routes 
      */
     extend(...routes: Routes[]) {
-        for (const route of routes) {
-            route.loadFallback();
-
+        for (const route of routes)
             for (const rec of route.record)
                 this.record.push([
                     rec[0],
@@ -251,7 +239,6 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
                     // Load all guards into routes
                     [...route.guards, ...rec[2], ...route.wraps]
                 ]);
-        }
 
         return this;
     }
@@ -268,8 +255,6 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
      * Infer all routes to the router
      */
     infer<T extends t.FastWint>(router: T) {
-        this.loadFallback();
-
         for (const rec of this.record)
             router.put(
                 rec[0], normalizePath(

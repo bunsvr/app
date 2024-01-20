@@ -126,7 +126,7 @@ const
                         .wrap(...wraps);
 
                     // Add fallback if not exists
-                    route.optionalReject(fallback);
+                    route.reject(fallback);
 
                     // Extend
                     app.routes.extend(route);

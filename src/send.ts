@@ -36,7 +36,7 @@ export const file = (path: string) =>
 /**
  * Send response options only
  */
-export const head = (init: ResponseInit) =>
+export const head = (init: Bun.ResponseInit) =>
     new Response(null, init);
 
 /**
@@ -49,7 +49,7 @@ export const redirect = (Location: string, status: RedirectStatus) =>
  * Create a redirect function
  */
 export const createLink = (Location: string, status: RedirectStatus) => {
-    const options: ResponseInit = {
+    const options: Bun.ResponseInit = {
         headers: { Location }, status
     };
 
@@ -57,15 +57,9 @@ export const createLink = (Location: string, status: RedirectStatus) => {
 }
 
 /**
- * Send only status
- */
-export const status = (status: Status) =>
-    new Response(null, statusCodes[status]);
-
-/**
  * Send status with a response
  */
-export const stat = (d: Readable, status: Status) => new Response(d, statusCodes[status]);
+export const status = (d: Readable, status: Status) => new Response(d, statusCodes[status]);
 
 /**
  * Send the context response

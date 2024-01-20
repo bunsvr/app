@@ -3,24 +3,24 @@
  */
 export const json = {
     headers: { 'Content-Type': 'application/json' }
-} satisfies ResponseInit;
+} satisfies Bun.ResponseInit;
 
 /**
  * HTML response options
  */
 export const html = {
     headers: { 'Content-Type': 'text/html' }
-} satisfies ResponseInit;
+} satisfies Bun.ResponseInit;
 
 /**
  * Event stream options
  */
 export const events = {
     headers: { 'Content-Type': 'text/event-stream' }
-} satisfies ResponseInit;
+} satisfies Bun.ResponseInit;
 
 /**
  * Status responses
  */
-export const status: ResponseInit[] = new Array(1000);
+export const status: Bun.ResponseInit[] = new Array(1000);
 for (let i = 0; i < 1000; ++i) status[i] = { status: i };

@@ -202,14 +202,9 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
     }
 
     /**
-     * Handle guards reject
+     * Register a reject handler for current handlers
      */
     reject(fn: Handler<Root, State>) {
-        this.loadFallback(fn);
-        return this;
-    }
-
-    private loadFallback(fn: any) {
         if (typeof fn !== 'function') return;
 
         // Prevent overriding
@@ -222,6 +217,8 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
         for (const f of this.record)
             for (const item of f[2])
                 item.fallback ??= fn;
+
+        return this;
     }
 
     /**

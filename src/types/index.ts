@@ -1,6 +1,6 @@
 import { t } from 'wint-js';
 
-export interface Context<Path extends string = any, State extends t.BaseState = {}> extends t.Context<Path, State> {
+export interface Context<Path extends string = any, State extends t.BaseState = {}> extends t.Context<Path, State>, Bun.ResponseInit {
     /**
      * The response body
      */

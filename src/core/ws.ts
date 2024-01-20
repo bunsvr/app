@@ -59,7 +59,7 @@ export namespace ws {
          */
         upgrade(ctx: Context, info?: {
             data?: D,
-            headers?: HeadersInit
+            headers?: Bun.HeadersInit
         }): boolean;
 
         /**

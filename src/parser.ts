@@ -1,45 +1,66 @@
 import { wrapAsync } from '.';
-import { Context } from './types';
+import { Context, Handler } from './types';
 
 const noop = () => null;
 
 /**
  * Create a JSON parser for a validator that yield the object back or null
  */
-export const json = <T>(vld: (d: any) => T | null) => wrapAsync(
-    (c: Context): Promise<T | null> => c.req.json().then(vld).catch(noop)
-);
+export const json = <T>(vld: (d: any) => T | null, reject?: Handler) => {
+    const err = typeof reject === 'undefined' ? noop : reject;
+
+    return wrapAsync(
+        (c: Context): Promise<T> => c.req.json().then(vld).catch(err)
+    );
+}
 
 /**
  * Create a JSON parser for a validator that returns a boolean to check whether
  * The JSON object has correct type or not
  */
-export const jsonv = <T>(vld: (d: any) => d is T) => json(t => vld(t) ? t : null);
+export const jsonv = <T>(vld: (d: any) => d is T, reject?: Handler) => json(t => vld(t) ? t : null, reject);
 
 /**
  * Create a form parser
  */
-export const form = wrapAsync(
-    (c: Context): Promise<FormData | null> => c.req.formData().catch(noop)
-);
+export const form = (reject?: Handler) => {
+    const err = typeof reject === 'undefined' ? noop : reject;
+
+    return wrapAsync(
+        (c: Context): Promise<FormData> => c.req.formData().catch(err)
+    );
+}
 
 /**
  * Create a blob parser
  */
-export const blob = wrapAsync(
-    (c: Context): Promise<Blob | null> => c.req.blob().catch(noop)
-);
+export const blob = (reject?: Handler) => {
+    const err = typeof reject === 'undefined' ? noop : reject;
+
+    return wrapAsync(
+        (c: Context): Promise<Blob> => c.req.blob().catch(err)
+    );
+}
 
 /**
- * Create a blob parser
+ * Create a text parser
  */
-export const text = wrapAsync(
-    (c: Context): Promise<string | null> => c.req.text().catch(noop)
-);
+export const text = (reject?: Handler) => {
+    const err = typeof reject === 'undefined' ? noop : reject;
+
+    return wrapAsync(
+        (c: Context): Promise<string> => c.req.text().catch(err)
+    );
+}
 
 /**
- * Create a blob parser
+ * Create an array buffer parser
  */
-export const buffer = wrapAsync(
-    (c: Context): Promise<ArrayBuffer | null> => c.req.arrayBuffer().catch(noop)
-);
+export const buffer = (reject?: Handler) => {
+    const err = typeof reject === 'undefined' ? noop : reject;
+
+    return wrapAsync(
+        (c: Context): Promise<ArrayBuffer> => c.req.arrayBuffer().catch(err)
+    );
+}
+

@@ -9,7 +9,7 @@
         ],
         "esModuleInterop": true,
         "target": "ESNext",
-        "skipDefaultLibCheck": true,
+        "skipLibCheck": true,
         "moduleResolution": "Bundler",
         "declaration": true,
         "emitDeclarationOnly": true

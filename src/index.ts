@@ -30,9 +30,9 @@ export interface AppOptions {
     config?: string;
 
     /**
-     * Enable WebSocket
+     * Auto prefix routes like file system routing
      */
-    ws?: boolean;
+    autoprefix?: boolean;
 }
 
 /**
@@ -80,7 +80,7 @@ export class App {
 
         // Set port in ENV if found
         if (!('port' in options.serve) && 'PORT' in Bun.env)
-            options.serve.port = Number(process.env.PORT);
+            options.serve.port = +process.env.PORT;
 
         // Set development
         if (!('development' in options.serve))
@@ -130,7 +130,7 @@ export class App {
             );
 
             // Register WebSocket handlers
-            if (this.options.ws)
+            if (this.wsList.length > 0)
                 for (const fn of this.wsList)
                     fn.bind(this.server);
 
@@ -191,7 +191,7 @@ export class App {
         ).build().query as any;
 
         // Set generic WebSocket handler
-        if (this.options.ws)
+        if (this.wsList.length > 0)
             (this.options.serve as WebSocketServeOptions<any>).websocket = ws.options;
 
         // Serve directly

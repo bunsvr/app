@@ -15,5 +15,5 @@ export namespace config {
     /**
      * A type-safe wrapper for handler functions
      */
-    export const fn = (...h: Handler[]) => h;
+    export const fn = <T extends Handler[]>(...h: T): T => h;
 }

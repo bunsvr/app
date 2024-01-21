@@ -55,11 +55,11 @@ const
     registerWS = async (absPath: string, app: App) => {
         // Import and check
         const o = await import(absPath);
-        if (notObj(o)) throw new Error(`Route file ${absPath} should export some WebSocket routes.`);
+        if (notObj(o)) throw new Error(`Route file ${absPath} should export a WebSocket route.`);
 
         // Try looping through every named export
         // and find every WebSocket routes available
-        for (var key in o)
+        for (const key in o)
             if (ws.isRoute(o[key]))
                 app.ws(o[key]);
     },
@@ -132,14 +132,13 @@ const
                     app.routes.extend(route);
                 }
                 // Match WebSocket route
-                else if (app.options.ws)
-                    if (wsPattern.match(item))
-                        await registerWS(itemPath, app);
+                else if (wsPattern.match(item))
+                    await registerWS(itemPath, app);
             }
 
             // Scan the child directory
             else await scan(
-                itemPath, app, prefix,
+                itemPath, app, app.options.autoprefix ? join(prefix, item) : prefix,
                 guards, wraps, fallback
             );
         }

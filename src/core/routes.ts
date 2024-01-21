@@ -7,17 +7,19 @@ import { t } from 'wint-js';
 import normalizePath from '../utils/normalizePath';
 import { layer } from './func';
 
+// Utils type
 type Merge<A, B> = B extends object ? (
-    A extends object ? A & B : B
+    A extends object ? (keyof A extends never ? B : A & B) : (keyof B extends never ? A : B)
 ) : B;
 
-type MergeRoutes<A extends Routes, B extends Routes> =
-    Routes<A['base'], Merge<StateOf<A>, StateOf<B>>>
-
-export type StateOf<T extends Routes> = T extends Routes<any, infer State> ? State : never;
+type MergeRoutes<A extends GenericRoutes, B extends GenericRoutes> =
+    Routes<A['base'], Merge<A['stateInfer'], B['stateInfer']>>
 
 export type Route = [method: string, path: string, handlers: Handler[]];
 
+export type PluginResult<Base extends Routes, T extends Plugin<Base, any>> = T extends Plugin<Base, infer R> ? R : GenericRoutes
+
+// Main types
 export interface RouteHandler<Root extends string, State extends t.BaseState> {
     <Path extends string>(path: Path, ...handlers: Handler<ConcatPath<Root, Path>, State>[]): Routes<Root, State>;
 }
@@ -26,16 +28,23 @@ export interface Routes<Root extends string, State extends t.BaseState> extends 
     typeof lowercaseMethods[number], RouteHandler<Root, State>
 > { };
 
+export interface GenericRoutes extends Routes<any, Record<string, any>> { };
+
 /**
  * A routes plugin
  */
-export interface Plugin<B extends Routes = Routes, R extends B = B> {
+export interface Plugin<B extends Routes = GenericRoutes, R extends B = B> {
     plugin<T extends B>(routes: T): R;
 }
 
 const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.length === 0 ? '' : 'c';
 
 export class Routes<Root extends string = any, State extends t.BaseState = {}> implements Plugin {
+    /**
+     * A property for correct type inference. Set to null by default
+     */
+    stateInfer: State = null;
+
     /**
      * Fallback when guard functions reject
      */
@@ -108,7 +117,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
     /**
      * Register a plugin
      */
-    use<T extends Plugin<this>>(f: T): MergeRoutes<this, ReturnType<T['plugin']>> {
+    use<T extends Plugin<this>>(f: T): MergeRoutes<this, PluginResult<this, T>> {
         return f.plugin(this as any) as any;
     }
 
@@ -295,4 +304,4 @@ export const state = <T extends Handler | Record<string, Handler>>(s: T) => s;
 /**
  * Create a plugin from a function
  */
-export const plugin = <R extends Routes>(plugin: (routes: Routes) => R): Plugin<Routes, R> => ({ plugin });
+export const plugin = <R extends Routes>(plugin: (routes: GenericRoutes) => R): Plugin<GenericRoutes, R> => ({ plugin });

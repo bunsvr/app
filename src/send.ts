@@ -1,7 +1,7 @@
 import { json as jsonOpts, html as htmlOpts, status as statusCodes } from './utils/options';
 import type { Context } from './types';
 import type { RedirectStatus, Status } from './types/basic';
-import { Plugin } from '.';
+import { plugin } from '.';
 
 /**
  * Type for everything that can be passed into `Response` constructor
@@ -69,6 +69,4 @@ export const ctx = (c: Context) => new Response(c.body, c);
 /**
  * Plugin to automatically send response based on context data
  */
-export const plug: Plugin<any, any> = {
-    plugin: routes => routes.wrap(ctx).reject(ctx)
-};
+export const plug = plugin(routes => routes.wrap(ctx).reject(ctx));

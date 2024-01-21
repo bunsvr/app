@@ -17,7 +17,7 @@ type MergeRoutes<A extends GenericRoutes, B extends GenericRoutes> =
 
 export type Route = [method: string, path: string, handlers: Handler[]];
 
-export type PluginResult<Base extends Routes, T extends Plugin<Base, any>> = T extends Plugin<Base, infer R> ? R : GenericRoutes
+export type PluginResult<T extends Plugin<any, any>> = ReturnType<T['plugin']>;
 
 // Main types
 export interface RouteHandler<Root extends string, State extends t.BaseState> {
@@ -29,6 +29,7 @@ export interface Routes<Root extends string, State extends t.BaseState> extends 
 > { };
 
 export interface GenericRoutes extends Routes<any, Record<string, any>> { };
+export interface GenericPlugin extends Plugin<any, any> { }
 
 /**
  * A routes plugin
@@ -41,7 +42,7 @@ const isVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/, args = (f: Function) => f.lengt
 
 export class Routes<Root extends string = any, State extends t.BaseState = {}> implements Plugin {
     /**
-     * A property for correct type inference. Set to null by default
+     * Properties for correct type inference. Set to null by default
      */
     stateInfer: State = null;
 
@@ -107,7 +108,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
     /**
      * Non-typesafe plugins
      */
-    plug<T extends Plugin<this>[]>(...plugins: T) {
+    plug<T extends Plugin<this, any>[]>(...plugins: T) {
         for (const f of plugins)
             f.plugin(this);
 
@@ -117,7 +118,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
     /**
      * Register a plugin
      */
-    use<T extends Plugin<this>>(f: T): MergeRoutes<this, PluginResult<this, T>> {
+    use<T extends Plugin<this, any>>(f: T): MergeRoutes<this, PluginResult<T>> {
         return f.plugin(this as any) as any;
     }
 

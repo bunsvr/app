@@ -295,4 +295,4 @@ export const state = <T extends Handler | Record<string, Handler>>(s: T) => s;
 /**
  * Create a plugin from a function
  */
-export const plugin = <R extends Routes>(plugin: <T extends Routes>(routes: T) => R): Plugin<Routes, R> => ({ plugin });
+export const plugin = <R extends Routes>(plugin: (routes: Routes) => R): Plugin<Routes, R> => ({ plugin });

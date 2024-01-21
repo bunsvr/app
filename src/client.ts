@@ -21,11 +21,15 @@ const castBodyInit = (init: RequestInit) => {
 /**
  * A test client for the current server
  */
-export const client = (app: App): Client => {
+export const client = (app: App, basePath: string = '/'): Client => {
     let base = app.server.url.href;
-
     if (base.endsWith('/'))
         base = base.slice(0, -1);
+
+    base += basePath;
+    if (base.endsWith('/'))
+        base = base.slice(0, -1);
+
 
     const obj: Partial<Client> = {
         fetch: (path: string, init?: RequestInit) => {

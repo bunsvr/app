@@ -73,7 +73,7 @@ export class App {
         options.serve ??= {};
 
         // Base config of each dir
-        options.config ??= 'base.ts';
+        options.config ??= 'config.ts';
 
         // No routes by default
         options.routes ??= [];

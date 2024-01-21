@@ -20,7 +20,7 @@ const
     ) => {
         // Check import
         let fn = await import(absPath);
-        if (notObj(fn)) throw new Error(`Route file ${absPath} should export a main function or a routes object.`);
+        if (notObj(fn)) throw new Error(`Route file ${absPath} should export a main function or a routes record.`);
 
         // Try to get a route group object by running the main function
         if (typeof fn.main === 'function') fn = fn.main(app);
@@ -32,7 +32,7 @@ const
 
         // If it is not route throw an error
         if (!(fn instanceof Routes))
-            throw new Error(`Route file ${absPath} main function result or export default is not a routes group.`);
+            throw new Error(`Route file ${absPath} main function result or export default is not a routes record.`);
 
         return fn as Routes<any>;
     },
@@ -78,7 +78,9 @@ const
         prevWraps: Handler[] = [],
         fallback: Handler = null,
     ) => {
+
         const
+            autoprefix = app.options.autoprefix === true,
             // Import config file and returns the config object
             config = await importConfig(
                 join(directory, app.options.config)
@@ -88,8 +90,12 @@ const
 
         // Check every option in config
         if (config) {
-            if (typeof config.prefix === 'string')
+            if (typeof config.prefix === 'string') {
+                if (autoprefix)
+                    throw new Error(`Specify a prefix path (in ${directory} configuration file) is not allowed when autoprefix is enabled!`)
+
                 prefix = join(prefix, config.prefix);
+            }
 
             // Append: [Prev guards] -> [Current guards]
             if (Array.isArray(config.guards))
@@ -138,7 +144,7 @@ const
 
             // Scan the child directory
             else await scan(
-                itemPath, app, app.options.autoprefix ? join(prefix, item) : prefix,
+                itemPath, app, autoprefix ? join(prefix, item) : prefix,
                 guards, wraps, fallback
             );
         }

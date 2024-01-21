@@ -30,7 +30,6 @@ export const client = (app: App, basePath: string = '/'): Client => {
     if (base.endsWith('/'))
         base = base.slice(0, -1);
 
-
     const obj: Partial<Client> = {
         fetch: (path, init) => {
             if (typeof init !== 'undefined')
@@ -43,7 +42,7 @@ export const client = (app: App, basePath: string = '/'): Client => {
     for (const lowerCaseMethod of lowercaseMethods) {
         const method = lowerCaseMethod.toUpperCase(), defaultObj = { method };
 
-        obj[lowerCaseMethod] = (path: string, init?: RequestInit) => {
+        obj[lowerCaseMethod] = (path, init) => {
             if (typeof init === 'undefined')
                 init = defaultObj;
             else

@@ -2,7 +2,7 @@ import type App from '.';
 import { lowercaseMethods } from './utils/methods';
 
 export interface RequestFunction {
-    (path: string, init?: RequestInit & { body?: any }): Promise<Response>;
+    (path: string, init?: Omit<RequestInit, 'body'> & { body?: any }): Promise<Response>;
 }
 
 export interface Client extends Record<typeof lowercaseMethods[number], RequestFunction> {
@@ -32,7 +32,7 @@ export const client = (app: App, basePath: string = '/'): Client => {
 
 
     const obj: Partial<Client> = {
-        fetch: (path: string, init?: RequestInit) => {
+        fetch: (path, init) => {
             if (typeof init !== 'undefined')
                 castBodyInit(init);
 

@@ -2,7 +2,7 @@ import type App from '.';
 import { lowercaseMethods } from './utils/methods';
 
 export interface RequestFunction {
-    (path: string, init?: RequestInit): Promise<Response>;
+    (path: string, init?: RequestInit & { body?: any }): Promise<Response>;
 }
 
 export interface Client extends Record<typeof lowercaseMethods[number], RequestFunction> {

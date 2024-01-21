@@ -304,4 +304,4 @@ export const state = <T extends Handler | Record<string, Handler>>(s: T) => s;
 /**
  * Create a plugin from a function
  */
-export const plugin = <R extends GenericRoutes>(plugin: (routes: GenericRoutes) => R): Plugin<GenericRoutes, R> => ({ plugin });
+export const plugin = <R extends Routes<any, any>>(plugin: (routes: GenericRoutes) => R): Plugin<GenericRoutes, R> => ({ plugin });

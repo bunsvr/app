@@ -186,7 +186,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
                 layerStates[key] = fnCall;
             // Push the function call and condition checking
             else
-                parts.push(`const ${key}=`, fnCall, `if(${key}===null)return null;`);
+                parts.push(`const ${key}=`, fnCall, `;if(${key}===null)return null;`);
         }
 
         // Set the final state
@@ -306,3 +306,4 @@ export const state = <T extends Handler | Record<string, Handler>>(s: T) => s;
  * Create a plugin from a function
  */
 export const plugin = <R extends Routes<any, any>>(plugin: (routes: GenericRoutes) => R): Plugin<GenericRoutes, R> => ({ plugin });
+

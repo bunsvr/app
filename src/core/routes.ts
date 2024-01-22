@@ -178,7 +178,7 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
             // Async function check
             if (rec[key].constructor.name === 'AsyncFunction') {
                 isAsync = true;
-                fnCall += 'await ';
+                fnCall = 'await ' + fnCall;
             }
 
             // Save to layer states (no checking)
@@ -306,4 +306,3 @@ export const state = <T extends Handler | Record<string, Handler>>(s: T) => s;
  * Create a plugin from a function
  */
 export const plugin = <R extends Routes<any, any>>(plugin: (routes: GenericRoutes) => R): Plugin<GenericRoutes, R> => ({ plugin });
-

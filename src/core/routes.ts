@@ -182,8 +182,10 @@ export class Routes<Root extends string = any, State extends t.BaseState = {}> i
             }
 
             // Save to layer states (no checking)
-            if (rec[key].noValidation)
+            if (rec[key].noValidation) {
                 layerStates[key] = fnCall;
+                delete rec[key];
+            }
             // Push the function call and condition checking
             else
                 parts.push(`const ${key}=`, fnCall, `;if(${key}===null)return null;`);

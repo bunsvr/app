@@ -8,3 +8,8 @@ export const layer = <T extends Handler>(fn: T): T => {
     fn.noValidation = true;
     return fn;
 }
+
+/**
+ * Type wrapper for a standalone guard
+ */
+export const guard = <T extends Handler>(fn: T): T => fn;

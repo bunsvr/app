@@ -64,9 +64,41 @@ export const status = (d: Readable, status: Status) => new Response(d, statusCod
 /**
  * Send the context response
  */
-export const ctx = (c: Context) => new Response(c.body, c);
+export const ctx = (ctx: Context) => new Response(ctx.body, ctx);
+
+/**
+ * Stringifier for each type
+ */
+export const stringifier = {
+    // Simple one right? (toString is faster than using String constructor)
+    number: ctx => ctx.body.toString(),
+    string: ctx => ctx.body,
+    boolean: ctx => ctx.body.toString(),
+    // It makes sense
+    undefined: () => null,
+    // Map sucks please don't even think of sending it
+    object: ctx => {
+        const { body } = ctx;
+        if (body === null) return null;
+
+        // Plain object
+        if (body.constructor.name === 'Object') {
+            ctx.headers['Content-Type'] ??= 'application/json';
+            return JSON.stringify(body);
+        }
+
+        return body;
+    },
+    // Idk whatever, who sends this shit to client
+    function: ctx => ctx.body.toString()
+} satisfies Record<string, (c: Context) => any>;
+
+/**
+ * Cast response to string 
+ */
+export const generic = (ctx: Context) => new Response(stringifier[typeof ctx.body](ctx), ctx);
 
 /**
  * Plugin to automatically send response based on context data
  */
-export const plug = plugin(routes => routes.wrap(ctx).reject(ctx));
+export const plug = plugin(routes => routes.wrap(generic).reject(generic));
